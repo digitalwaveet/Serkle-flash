@@ -1,0 +1,170 @@
+import React, { useState } from 'react';
+import { AlertTriangle } from 'lucide-react';
+import { Story } from '@/types/storyTypes';
+import { StoryCanvas } from './StoryCanvas';
+import '@/components/post/MediaGuard.css';
+
+interface StoryMediaRendererProps {
+  story: Story;
+  videoRef: React.RefObject<HTMLVideoElement>;
+  bgVideoRef: React.RefObject<HTMLVideoElement>;
+  setVideoDuration: (duration: number) => void;
+  isTransitioning?: boolean;
+  transitionDirection?: 'next' | 'prev';
+  isImagePreloaded?: boolean;
+}
+
+export const StoryMediaRenderer: React.FC<StoryMediaRendererProps> = ({
+  story,
+  videoRef,
+  bgVideoRef,
+  setVideoDuration,
+  isTransitioning,
+  transitionDirection,
+  isImagePreloaded,
+}) => {
+  const isVideo = story.mediaType === 'video';
+  const [hasError, setHasError] = useState(false);
+  const [imgLoaded, setImgLoaded] = useState(false);
+
+  if (hasError) {
+    return (
+      <div className="absolute inset-0 z-0 bg-black flex flex-col items-center justify-center">
+        <div className="size-16 rounded-full bg-destructive/20 flex items-center justify-center mb-4">
+          <AlertTriangle className="size-8 text-destructive" />
+        </div>
+        <h3 className="text-lg font-semibold text-white mb-2">Media Unavailable</h3>
+        <p className="text-white/60 text-sm max-w-[250px] text-center">
+          This content could not be loaded or may have been removed.
+        </p>
+      </div>
+    );
+  }
+
+  const transitionClass = isTransitioning && isImagePreloaded
+    ? (transitionDirection === 'next' ? 'story-exit-left' : 'story-exit-right')
+    : '';
+
+  // NEW DOM-BASED RENDERER (if story_state exists)
+  if (story.story_state) {
+    return (
+      <>
+        {/* Background Blur Layer is handled directly by StoryCanvas for uniform behavior or we can keep the blur effect outside.
+            Wait, if the canvas has a 9:16 aspect ratio, the viewer background behind the canvas should be black.
+            The user requested: "Viewer Mode: Background behind the canvas is always #000."
+            So we don't need a blurred background for new stories, they will just sit on black! */}
+        <div className="absolute inset-0 z-0 bg-black" />
+
+        <div className={`absolute inset-0 z-10 story-media-transition flex items-center justify-center ${transitionClass}`}>
+          <StoryCanvas 
+            state={story.story_state} 
+            videoRef={videoRef}
+            onVideoLoadedMetadata={(e) => {
+              const vid = e.currentTarget;
+              setVideoDuration(vid.duration);
+            }}
+          />
+        </div>
+      </>
+    );
+  }
+
+  // LEGACY FALLBACK (for existing old stories without story_state)
+  return (
+    <>
+      {/* Background Blur Layer */}
+      <div className="story-bg-blur">
+        {isVideo ? (
+          <video
+            ref={bgVideoRef}
+            src={story.image}
+            className="story-bg-media"
+            style={{ filter: 'blur(40px) brightness(0.7)', transform: 'scale(1.15)', objectFit: 'cover' }}
+            autoPlay loop muted playsInline
+          />
+        ) : (
+          <img
+            src={story.image}
+            alt=""
+            className="story-bg-media"
+            style={{ filter: 'blur(40px) brightness(0.7)', transform: 'scale(1.15)', objectFit: 'cover' }}
+            draggable={false}
+          />
+        )}
+        <div className="story-bg-overlay" />
+      </div>
+
+      {/* Main Media Content */}
+      <div className={`absolute inset-0 story-media-transition ${transitionClass}`}>
+        {isVideo ? (
+          <>
+            {story.videoTransform ? (
+              <div className="w-full h-full relative overflow-hidden bg-transparent">
+                <video
+                  ref={videoRef}
+                  src={story.image}
+                  className="absolute"
+                  style={{
+                    left: `${(story.videoTransform.x / story.videoTransform.canvasW) * 100}%`,
+                    top: `${(story.videoTransform.y / story.videoTransform.canvasH) * 100}%`,
+                    transform: `translate(-50%, -50%) scale(${story.videoTransform.scale}) rotate(${story.videoTransform.rotation}deg)`,
+                    transformOrigin: 'center center',
+                    maxWidth: 'none',
+                    maxHeight: 'none',
+                  }}
+                  autoPlay loop playsInline preload="auto" muted={false}
+                  onLoadedMetadata={(e) => {
+                    const vid = e.currentTarget;
+                    setVideoDuration(vid.duration);
+                    if (story.videoTransform) {
+                      const safeW = story.videoTransform.canvasW - 24;
+                      const safeH = story.videoTransform.canvasH - 24;
+                      const fitScale = Math.min(safeW / vid.videoWidth, safeH / vid.videoHeight, 1);
+                      vid.style.width = `${(vid.videoWidth * fitScale / story.videoTransform.canvasW) * 100}%`;
+                      vid.style.height = 'auto';
+                    }
+                  }}
+                  onError={() => setHasError(true)}
+                />
+              </div>
+            ) : (
+              <video
+                ref={videoRef}
+                src={story.image}
+                className="w-full h-full object-contain"
+                autoPlay loop playsInline preload="auto" muted={false}
+                onLoadedMetadata={(e) => setVideoDuration(e.currentTarget.duration)}
+                onError={() => setHasError(true)}
+              />
+            )}
+            {story.overlayUrl && (
+              <img
+                src={story.overlayUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-contain pointer-events-none z-[2]"
+                draggable={false}
+              />
+            )}
+          </>
+        ) : (
+          <>
+            {/* Skeleton shimmer until the image is fully loaded — no partial reveal */}
+            {!imgLoaded && (
+              <div className="absolute inset-0 z-[1] flex items-center justify-center">
+                <div className="media-shimmer absolute inset-0" />
+              </div>
+            )}
+            <img
+              src={story.image}
+              alt={`${story.user?.name || 'User'}'s story`}
+              className={`w-full h-full object-contain transition-opacity duration-300 ${imgLoaded ? 'opacity-100' : 'opacity-0'}`}
+              draggable={false}
+              onLoad={() => setImgLoaded(true)}
+              onError={() => setHasError(true)}
+            />
+          </>
+        )}
+      </div>
+    </>
+  );
+};
