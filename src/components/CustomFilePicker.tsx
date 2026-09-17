@@ -701,6 +701,9 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
         >
           {children}
         </div>
+      ) : autoOpen ? (
+        /* autoOpen mode — no trigger needed, the sheet opens on its own */
+        null
       ) : (
         <button
           type="button"
