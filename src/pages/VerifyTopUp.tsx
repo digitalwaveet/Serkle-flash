@@ -1,8 +1,9 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useEffect, useState } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useCoinWallet } from "@/hooks/useCoinWallet";
 import { useUser } from "@/contexts/UserContext";
-import { CheckCircle2, Loader2, XCircle, Coins, ArrowLeft } from "lucide-react";
+import { CheckCircle2, XCircle, Coins, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const VerifyTopUp = () => {
@@ -101,8 +102,8 @@ const VerifyTopUp = () => {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-6 bg-transparent">
         <div className="flex flex-col items-center text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-4 animate-pulse">
-            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+          <div className="h-16 px-4 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+            <SerkleLoader size="md" className="text-primary" />
           </div>
           <h1 className="text-xl font-bold mb-1">Completing Payment...</h1>
           <p className="text-sm text-muted-foreground">
@@ -123,8 +124,8 @@ const VerifyTopUp = () => {
         <div className="relative z-10 flex flex-col items-center text-center">
           {status === 'verifying' && (
             <>
-              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6 animate-pulse segment-shimmer">
-                <Loader2 className="w-10 h-10 text-primary animate-spin" />
+              <div className="h-20 px-4 rounded-2xl bg-primary/10 flex items-center justify-center mb-6">
+                <SerkleLoader size="md" className="text-primary" />
               </div>
               <h1 className="text-2xl font-bold mb-2">Verifying Payment</h1>
               <p className="text-muted-foreground">

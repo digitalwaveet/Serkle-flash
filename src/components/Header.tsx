@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Bell, Mail, Settings, User as UserIcon, Palette, LogOut, ShoppingBag, RotateCw, Search, Sun, Moon, Monitor, Coins } from 'lucide-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useUser } from '@/contexts/UserContext';
@@ -164,7 +165,7 @@ const Header: React.FC<HeaderProps> = ({ onNotifications, onMessages, onMenuOpen
               />
             </div>
             <div className="flex items-center gap-1">
-              <div className="w-8 h-8 bg-muted rounded-full animate-pulse"></div>
+              <SerkleLoader size="xs" label="Loading account" />
             </div>
           </div>
         </div>

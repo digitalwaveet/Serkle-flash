@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, RotateCcw, Sparkles, MapPin, Play, Users, Globe, X, UserPlus, Music, Zap } from 'lucide-react';
 import { toast } from 'sonner';
@@ -135,7 +136,7 @@ const PreLiveSettings: React.FC<PreLiveSettingsProps> = ({ config, onComplete, o
         {!cameraReady && (
           <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
             <div className="text-white text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4" />
+              <SerkleLoader size="md" className="text-white mx-auto mb-4" />
               <p className="text-lg">Initializing camera...</p>
             </div>
           </div>

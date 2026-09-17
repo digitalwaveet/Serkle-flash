@@ -1,9 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, X, User, Clock, MapPin } from 'lucide-react';
+import { X, User, Clock, MapPin } from 'lucide-react';
 
 interface AutoRequestProgressProps {
   isRequesting: boolean;
@@ -44,7 +45,7 @@ export const AutoRequestProgress: React.FC<AutoRequestProgressProps> = ({
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Loader2 className="h-5 w-5 text-blue-500 animate-spin" />
+              <SerkleLoader size="xs" className="text-blue-500" />
               <h3 className="font-bold text-lg">Finding Helper...</h3>
             </div>
             <Button

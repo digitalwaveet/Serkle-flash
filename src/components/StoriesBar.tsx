@@ -1,6 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
+import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Story } from '@/data/mock';
+import type { Story } from '@/types/storyTypes';
 import StoryViewer from './StoryViewer';
 import CreateStoryModal from './CreateStoryModal';
 import WebRTCLiveViewer from './live/WebRTCLiveViewer';
@@ -21,8 +22,8 @@ const StoriesBar: React.FC = () => {
   const [stories, refreshStories, isLoading, markStoryViewed] = useStoryPersistence();
 
   const handleStoryClick = (story: Story, index: number) => {
-    if ((story as any).isLive && (story as any).liveStreamId) {
-      setSelectedLiveStreamId((story as any).liveStreamId);
+    if (story.isLive && story.liveStreamId) {
+      setSelectedLiveStreamId(story.liveStreamId);
       setIsLiveViewerOpen(true);
       pushModalState('live-viewer', () => {
         setIsLiveViewerOpen(false);
@@ -46,30 +47,22 @@ const StoriesBar: React.FC = () => {
 
   const getFirstName = (name: string) => name.split(' ')[0];
 
-  // Show skeleton during the whole initial load: while auth is still resolving
-  // (user not ready yet) and while stories are being fetched the first time.
-  const showSkeleton = (authLoading || isLoading) && stories.length === 0;
+  // Keep already-fetched stories visible during background refreshes.
+  const showLoading = (authLoading || isLoading) && stories.length === 0;
 
   return (
     <>
       <section aria-label="Stories" className="px-4 py-3">
         <div className="flex gap-4 overflow-x-auto scrollbar-hide" aria-live="polite">
-          {showSkeleton && (
-            <>
-              {Array.from({ length: 6 }).map((_, i) => (
-                <div key={`skeleton-${i}`} className="flex flex-col items-center shrink-0 gap-1.5">
-                  <div className="relative">
-                    <div className="size-[66px] rounded-full bg-muted animate-pulse" />
-                  </div>
-                  <div className="h-3 w-12 rounded-full bg-muted animate-pulse" />
-                </div>
-              ))}
-            </>
+          {showLoading && (
+            <div className="flex min-h-24 w-full items-center justify-center py-8">
+              <SerkleLoader size="sm" label="Loading stories" />
+            </div>
           )}
-          {!showSkeleton && stories.map((story, index) => {
+          {!showLoading && stories.map((story, index) => {
             const isOwn = story.isOwn;
             const hasStories = story.allStories && story.allStories.length > 0;
-            const isLive = (story as any).isLive;
+            const isLive = story.isLive;
             const isViewed = story.isViewed;
 
             return (
@@ -116,10 +109,6 @@ const StoriesBar: React.FC = () => {
                           <Plus className="size-3 text-white" />
                         </div>
                       </div>
-                      {/* First-time hint for users with no stories */}
-                      <span className="absolute -bottom-5 left-1/2 -translate-x-1/2 text-[9px] text-primary font-semibold whitespace-nowrap animate-pulse select-none pointer-events-none">
-                        Add story
-                      </span>
                     </>
                   ) : (
                     /* Other stories — segmented gradient ring */
@@ -214,7 +203,7 @@ const StoriesBar: React.FC = () => {
                 </div>
 
                 <span className="text-[11px] font-medium text-muted-foreground max-w-[64px] truncate text-center leading-tight">
-                  {isOwn && isLive ? "LIVE" : isOwn ? "Your Nest" : getFirstName(story.user.name)}
+                  {isOwn && isLive ? "LIVE" : isOwn ? (hasStories ? "Your Nest" : "Add story") : getFirstName(story.user.name)}
                 </span>
               </div>
             );

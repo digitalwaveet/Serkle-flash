@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Play, Download } from 'lucide-react';
 
 export interface MediaItem {
@@ -69,7 +70,7 @@ const MediaCell: React.FC<{
     >
       {/* Shimmer skeleton */}
       {!loaded && (
-        <div className="absolute inset-0 bg-muted animate-pulse" />
+        <div className="absolute inset-0 bg-muted flex items-center justify-center"><SerkleLoader size="sm" label="Loading attachment" /></div>
       )}
 
       {item.type === 'photo' ? (

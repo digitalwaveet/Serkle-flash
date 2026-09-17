@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
-import { X, MapPin, Hash, AtSign, Link2, Smile, Loader2 } from 'lucide-react';
+import { X, MapPin, Hash, AtSign, Link2, Smile } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -308,7 +309,7 @@ const StoryStickerPicker: React.FC<Props> = ({ onAdd, onClose }) => {
               <div className="space-y-1">
                 {searchingLocations && (
                   <div className="flex items-center justify-center py-4">
-                    <Loader2 className="size-5 animate-spin text-white/60" />
+                    <SerkleLoader size="xs" className="text-white/60" />
                   </div>
                 )}
                 {!searchingLocations && locationResults.length === 0 && infoInput.trim() && (
@@ -350,7 +351,7 @@ const StoryStickerPicker: React.FC<Props> = ({ onAdd, onClose }) => {
               <div className="space-y-1">
                 {searchingUsers && (
                   <div className="flex items-center justify-center py-4">
-                    <Loader2 className="size-5 animate-spin text-white/60" />
+                    <SerkleLoader size="xs" className="text-white/60" />
                   </div>
                 )}
                 {!searchingUsers && userResults.length === 0 && infoInput.trim() && (

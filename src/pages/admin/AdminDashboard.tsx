@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
@@ -90,9 +91,7 @@ export default function AdminDashboard() {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Card key={i} className="animate-pulse"><CardContent className="p-4 h-20" /></Card>
-          ))}
+          <div className="col-span-full flex min-h-24 w-full items-center justify-center py-8"><SerkleLoader size="md" label="Loading data" /></div>
         </div>
       </div>
     );

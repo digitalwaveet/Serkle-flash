@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
-import { Star, Calendar, DollarSign, Eye, Loader2, CheckCircle } from 'lucide-react';
+import { Star, Calendar, DollarSign, Eye, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -103,7 +104,7 @@ const CircleServices: React.FC<CircleServicesProps> = ({ circle, isOwner }) => {
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <SerkleLoader size="md" className="text-primary" />
           </div>
         ) : services.length === 0 ? (
           <CircleEmptyState

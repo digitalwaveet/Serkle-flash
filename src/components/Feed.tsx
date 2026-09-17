@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import PostCard from './PostCard';
 import { Post } from '@/data/mock';
@@ -5,28 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { VideoLoader } from '@/components/ui/VideoLoader';
 import EmptyState from '@/components/ui/empty-state';
 
-const PostSkeleton = () => (
-  <div className="bg-card rounded-2xl overflow-hidden border border-border/50 shadow-[var(--shadow-soft)] mb-3 animate-pulse">
-    <div className="px-4 pt-4 pb-3 flex items-center gap-3">
-      <div className="size-10 rounded-full bg-muted" />
-      <div className="flex-1 space-y-2">
-        <div className="h-3.5 w-28 rounded bg-muted" />
-        <div className="h-3 w-16 rounded bg-muted" />
-      </div>
-    </div>
-    <div className="aspect-square w-full bg-muted" />
-    <div className="px-3 pt-3 pb-1 flex items-center gap-4">
-      <div className="h-5 w-12 rounded bg-muted" />
-      <div className="h-5 w-12 rounded bg-muted" />
-      <div className="h-5 w-12 rounded bg-muted" />
-      <div className="ml-auto h-5 w-5 rounded bg-muted" />
-    </div>
-    <div className="px-4 pt-1 pb-4 space-y-2">
-      <div className="h-3.5 w-full rounded bg-muted" />
-      <div className="h-3.5 w-3/4 rounded bg-muted" />
-    </div>
-  </div>
-);
+const PostSkeleton = () => (<div className="min-h-64 flex items-center justify-center"><SerkleLoader label="Loading posts" showText /></div>);
 
 const PAGE_SIZE = 10;
 
@@ -161,7 +141,6 @@ const Feed: React.FC = () => {
       <h2 id="feed-heading" className="sr-only">Feed</h2>
       {loading ? (
         <>
-          <PostSkeleton />
           <PostSkeleton />
         </>
       ) : posts.length ? (

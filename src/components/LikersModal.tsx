@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import PublicProfileModal from './PublicProfileModal';
@@ -98,7 +99,7 @@ const LikersModal: React.FC<LikersModalProps> = ({ isOpen, onClose, postId }) =>
 
           <div className="overflow-y-auto flex-1 p-2">
             {loading ? (
-              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">Loading...</div>
+              <div className="flex items-center justify-center py-8"><SerkleLoader size="sm" label="Loading likes" /></div>
             ) : likers.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">No likes yet</div>
             ) : (

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminAudit } from '@/hooks/useAdminAudit';
@@ -10,9 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-  Radio, Search, Users, Eye, Clock, XCircle, BarChart3, AlertTriangle, Activity, TrendingUp,
-} from 'lucide-react';
+import { Radio, Search, Users, Eye, Clock, XCircle, BarChart3, AlertTriangle, Activity, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDistanceToNow, format } from 'date-fns';
 
@@ -226,7 +225,7 @@ export default function AdminLiveStreams() {
             <CardContent className="p-0">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <SerkleLoader size="sm" className="text-current" />
                 </div>
               ) : filterStreams(streams).length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
@@ -261,7 +260,7 @@ export default function AdminLiveStreams() {
             <CardContent className="p-0">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                  <SerkleLoader size="sm" className="text-current" />
                 </div>
               ) : filterStreams(pastStreams).length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground">
@@ -332,7 +331,7 @@ function TopBroadcasters() {
     })();
   }, []);
 
-  if (loading) return <div className="flex justify-center py-8"><div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center py-8"><SerkleLoader size="sm" className="text-current" /></div>;
 
   if (broadcasters.length === 0) return <p className="text-center text-muted-foreground py-8">No broadcaster data yet</p>;
 

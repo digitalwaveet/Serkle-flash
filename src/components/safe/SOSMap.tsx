@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -5,7 +6,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { MapPin, Navigation, Users, Clock, Target, AlertTriangle, Share2, Activity, Loader2, Heart, Shield, Flame, Car, Tornado, Phone } from 'lucide-react';
+import { MapPin, Navigation, Users, Clock, Target, AlertTriangle, Share2, Activity, Heart, Shield, Flame, Car, Tornado, Phone } from 'lucide-react';
 import { useSOSAlerts } from '@/hooks/useSOSAlerts';
 import { useSOSHelpers } from '@/hooks/useSOSHelpers';
 import { useGeolocation } from '@/hooks/useGeolocation';
@@ -389,7 +390,7 @@ export const SOSMap: React.FC<SOSMapProps> = ({ userLat, userLng }) => {
     return (
       <Card className="w-full h-[600px] relative overflow-hidden">
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <SerkleLoader size="md" className="text-primary" />
           <p className="text-sm text-muted-foreground">Loading map...</p>
         </div>
       </Card>

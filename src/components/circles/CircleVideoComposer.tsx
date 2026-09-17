@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useRef, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { useCircleVideos, CircleVideo } from '@/hooks/useCircleVideos';
 import { useUpload } from '@/contexts/UploadContext';
 import { Progress } from '@/components/ui/progress';
 import { useVideoPlaylists } from '@/hooks/useVideoPlaylists';
-import { Upload, X, Film, Image as ImageIcon, Loader2, Coins, Crown, Plus, Check } from 'lucide-react';
+import { Upload, X, Film, Image as ImageIcon, Coins, Crown, Plus, Check } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from 'sonner';
 interface CircleVideoComposerProps {
@@ -238,7 +239,7 @@ const CircleVideoComposer: React.FC<CircleVideoComposerProps> = ({
                       onClick={handleCreatePlaylist}
                       disabled={createPlaylist.isPending}
                     >
-                      {createPlaylist.isPending ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                      {createPlaylist.isPending ? <SerkleLoader size="xs" className="text-current" /> : <Check className="size-4" />}
                     </Button>
                     <Button 
                       size="icon" 
@@ -329,7 +330,7 @@ const CircleVideoComposer: React.FC<CircleVideoComposerProps> = ({
           {activeUpload ? (
             <div className="flex-1 space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-primary">
-                <span>Uploading to background...</span>
+                <span className="inline-flex items-center gap-2"><SerkleLoader size="xs" />Uploading to background...</span>
                 <span>{Math.round(activeUpload.progress)}%</span>
               </div>
               <Progress value={activeUpload.progress} className="h-2" />
@@ -357,7 +358,7 @@ const CircleVideoComposer: React.FC<CircleVideoComposerProps> = ({
               >
                 {uploadVideo.isPending || updateVideo.isPending ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <SerkleLoader size="xs" className="text-current mr-2" />
                     {isEditing ? 'Updating...' : 'Publishing...'}
                   </>
                 ) : (

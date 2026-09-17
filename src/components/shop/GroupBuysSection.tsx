@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Users, Clock, TrendingDown } from 'lucide-react';
 import { useGroupBuys, useGroupBuyMutations } from '@/hooks/useGroupBuys';
 import { useNavigate } from 'react-router-dom';
-import { Loader2 } from 'lucide-react';
+
 
 export const GroupBuysSection: React.FC = () => {
   const { data: groupBuys, isLoading } = useGroupBuys();
@@ -141,7 +142,7 @@ export const GroupBuysSection: React.FC = () => {
                         className="h-7 text-xs"
                       >
                         {(joinGroupBuy.isPending || leaveGroupBuy.isPending) ? (
-                          <Loader2 className="w-3 h-3 animate-spin" />
+                          <SerkleLoader size="xs" className="text-current" />
                         ) : gb.user_joined ? (
                           'Joined'
                         ) : (

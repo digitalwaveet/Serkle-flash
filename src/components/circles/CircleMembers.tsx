@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
-import { Search, UserPlus, Crown, Shield, MessageCircle, Loader2, Check, X, Users } from 'lucide-react';
+import { Search, UserPlus, Crown, Shield, MessageCircle, Check, X, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -218,7 +219,7 @@ const CircleMembers: React.FC<CircleMembersProps> = ({ circle, isOwner, onViewPr
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <SerkleLoader size="md" className="text-muted-foreground" />
         </div>
       ) : filteredMembers.length > 0 ? (
         <div className="max-w-2xl mx-auto space-y-3">

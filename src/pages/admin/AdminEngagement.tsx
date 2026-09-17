@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -171,9 +172,7 @@ export default function AdminEngagement() {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-foreground">User Engagement</h1>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="animate-pulse"><CardContent className="p-6 h-64" /></Card>
-          ))}
+          <div className="col-span-full flex min-h-24 w-full items-center justify-center py-8"><SerkleLoader size="md" label="Loading data" /></div>
         </div>
       </div>
     );

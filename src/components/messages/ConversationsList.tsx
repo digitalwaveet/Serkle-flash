@@ -1,9 +1,9 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Users, Pin, PinOff, MessageCircle, X } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
 import { Conversation, usePinnedConversations, useTogglePin } from '@/hooks/useConversations';
-import { Skeleton } from '@/components/ui/skeleton';
 import EmptyState from '@/components/ui/empty-state';
 import { usePresence } from '@/hooks/usePresence';
 import { useUnreadCount } from '@/hooks/useUnreadCount';
@@ -103,17 +103,7 @@ const ConversationsList: React.FC<ConversationsListProps> = ({
 
   if (isLoading) {
     return (
-      <div className="space-y-1">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <div key={i} className="flex items-center gap-3 p-4 border-b border-border/50">
-            <Skeleton className="h-14 w-14 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-4 w-32" />
-              <Skeleton className="h-3 w-48" />
-            </div>
-          </div>
-        ))}
-      </div>
+      <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading messages" showText /></div>
     );
   }
 

@@ -1,8 +1,9 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Loader2, Package, Clock, Truck } from 'lucide-react';
+import { Package, Clock, Truck } from 'lucide-react';
 import { SellerOrder } from '@/hooks/useSellerOrders';
 import { useOrderStatusUpdate } from '@/hooks/useOrderStatusUpdate';
 import { format } from 'date-fns';
@@ -56,7 +57,7 @@ export const SellerOrdersList: React.FC<SellerOrdersListProps> = ({ orders, isLo
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }
@@ -143,7 +144,7 @@ export const SellerOrdersList: React.FC<SellerOrdersListProps> = ({ orders, isLo
                   disabled={updateOrderStatus.isPending}
                 >
                   {updateOrderStatus.isPending ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                    <SerkleLoader size="xs" className="text-current mr-2" />
                   ) : NextIcon ? (
                     <NextIcon className="w-4 h-4 mr-2" />
                   ) : null}

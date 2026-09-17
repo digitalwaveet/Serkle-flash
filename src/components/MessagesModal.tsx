@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Search, Send, Phone, Video, MoreVertical, ArrowLeft, Smile, Paperclip, Camera } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface MessagesModalProps {
   isOpen: boolean;
@@ -287,17 +287,7 @@ export const MessagesModal: React.FC<MessagesModalProps> = ({ isOpen, onClose })
           {/* Messages */}
           <ScrollArea className="flex-1 p-4">
             {isFetchingMessages ? (
-              <div className="space-y-6">
-                {[1, 2, 3, 4].map((i) => (
-                  <div key={i} className={`flex gap-3 ${i % 2 === 0 ? 'flex-row-reverse' : 'flex-row'}`}>
-                    <Skeleton className="h-8 w-8 rounded-full mt-auto" />
-                    <div className={`flex flex-col gap-1 max-w-[75%] ${i % 2 === 0 ? 'items-end' : 'items-start'}`}>
-                      <Skeleton className={`h-16 w-48 rounded-2xl ${i % 2 === 0 ? 'rounded-br-none bg-primary/20' : 'rounded-bl-none bg-muted/60'}`} />
-                      <Skeleton className="h-3 w-12 rounded-full opacity-50" />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading messages" showText /></div>
             ) : (
               <div className="space-y-4">
                 {selectedConv.messages.map((message) => (
@@ -412,20 +402,7 @@ export const MessagesModal: React.FC<MessagesModalProps> = ({ isOpen, onClose })
         <ScrollArea className="flex-1">
           <div className="space-y-1 p-4">
             {isFetchingConversations ? (
-              <div className="space-y-4">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <div key={i} className="flex items-center gap-3 p-3">
-                    <Skeleton className="h-12 w-12 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-12" />
-                      </div>
-                      <Skeleton className="h-3 w-40" />
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading messages" showText /></div>
             ) : filteredConversations.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <p>No conversations found</p>

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -112,7 +113,7 @@ export default function AdminAskModeration() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-foreground">Ask/Q&A Moderation</h1>
         <Button variant="outline" size="sm" onClick={() => { fetchQuestions(); fetchExperts(); }} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />Refresh
+          {loading ? <SerkleLoader size="xs" className="mr-1 text-current" label="Refreshing" /> : <RefreshCw className="h-4 w-4 mr-1" />}Refresh
         </Button>
       </div>
 

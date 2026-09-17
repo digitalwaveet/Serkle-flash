@@ -1,4 +1,5 @@
 import React from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useMediaLoader, MediaType } from '@/hooks/useMediaLoader';
 import { FileText, AlertCircle, RefreshCw, PlayCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -102,19 +103,7 @@ export const MediaGuardItem: React.FC<MediaGuardItemProps> = ({
       {/* Loading skeleton — overlaid, not a replacement, so the element keeps loading underneath. */}
       {isPending && (
         <div className="absolute inset-0 flex flex-col items-center justify-center rounded-xl">
-          <div className="media-shimmer absolute inset-0 rounded-xl" />
-          <div className="relative z-10 flex flex-col items-center gap-3">
-            {type === 'pdf' ? (
-              <FileText className="w-8 h-8 text-white/20" />
-            ) : type === 'video' ? (
-              <PlayCircle className="w-8 h-8 text-white/20" />
-            ) : null}
-            {isPdfAwaitingThumbnail && (
-              <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 animate-pulse">
-                Generating Preview
-              </span>
-            )}
-          </div>
+          <SerkleLoader size="sm" label={isPdfAwaitingThumbnail ? 'Generating preview' : 'Loading media'} showText />
         </div>
       )}
 
@@ -126,7 +115,7 @@ export const MediaGuardItem: React.FC<MediaGuardItemProps> = ({
         </div>
       )}
 
-      {showOverlay && type === 'video' && (
+      {showOverlay && type === 'video' && !isPending && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/10 transition-colors duration-300">
           <div className="p-3 rounded-full bg-black/40 backdrop-blur-md border border-white/10 text-white transform scale-90 group-hover:scale-100 transition-transform duration-300">
             <PlayCircle className="w-8 h-8" />

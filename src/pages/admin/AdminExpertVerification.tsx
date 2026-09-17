@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 ﻿import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,11 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { supabase } from "@/integrations/supabase/client";
 import { useAdminAudit } from "@/hooks/useAdminAudit";
 import { toast } from "sonner";
-import {
-  Award, Search, CheckCircle, XCircle, Clock, RefreshCw,
-  Mail, User, Calendar, Briefcase, Loader2, Eye,
-  FileText, Download, AlertCircle, Ban
-} from "lucide-react";
+import { Award, Search, CheckCircle, XCircle, Clock, RefreshCw, Mail, User, Calendar, Briefcase, Eye, FileText, Download, AlertCircle, Ban } from "lucide-react";
 
 interface VerificationRequest {
   id: string;
@@ -243,7 +240,7 @@ export default function AdminExpertVerification() {
           <TabsContent key={statusGroup} value={statusGroup}>
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                <SerkleLoader size="sm" className="text-muted-foreground" />
               </div>
             ) : filtered.length === 0 ? (
               <Card>
@@ -449,7 +446,7 @@ export default function AdminExpertVerification() {
                       onClick={() => handleAction(selectedRequest.id, "verified")}
                       disabled={processing}
                     >
-                      {processing ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
+                      {processing ? <SerkleLoader size="xs" className="text-current mr-1" /> : <CheckCircle className="h-4 w-4 mr-1" />}
                       Verify Expert
                     </Button>
                   )}
@@ -464,7 +461,7 @@ export default function AdminExpertVerification() {
                       }}
                       disabled={processing}
                     >
-                      {processing ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <AlertCircle className="h-4 w-4 mr-1" />}
+                      {processing ? <SerkleLoader size="xs" className="text-current mr-1" /> : <AlertCircle className="h-4 w-4 mr-1" />}
                       Request Info
                     </Button>
                   )}
@@ -476,7 +473,7 @@ export default function AdminExpertVerification() {
                       onClick={() => handleAction(selectedRequest.id, "rejected")}
                       disabled={processing}
                     >
-                      {processing ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <XCircle className="h-4 w-4 mr-1" />}
+                      {processing ? <SerkleLoader size="xs" className="text-current mr-1" /> : <XCircle className="h-4 w-4 mr-1" />}
                       Reject
                     </Button>
                   )}
@@ -490,7 +487,7 @@ export default function AdminExpertVerification() {
                       }}
                       disabled={processing}
                     >
-                      {processing ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Ban className="h-4 w-4 mr-1" />}
+                      {processing ? <SerkleLoader size="xs" className="text-current mr-1" /> : <Ban className="h-4 w-4 mr-1" />}
                       Suspend Verified Status
                     </Button>
                   )}

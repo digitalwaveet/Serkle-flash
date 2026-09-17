@@ -1,7 +1,8 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React from 'react';
 import { useUpload, UploadItem } from '@/contexts/UploadContext';
 import { Progress } from '@/components/ui/progress';
-import { X, CheckCircle2, AlertCircle, Loader2, Film } from 'lucide-react';
+import { X, CheckCircle2, AlertCircle, Film } from 'lucide-react';
 
 const UploadProgressOverlay: React.FC = () => {
   const { uploads, clearUpload } = useUpload();
@@ -24,7 +25,7 @@ const UploadProgressOverlay: React.FC = () => {
 
           <div className="flex items-start gap-3">
             <div className="size-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
-              {upload.status === 'uploading' && <Loader2 className="size-5 text-primary animate-spin" />}
+              {upload.status === 'uploading' && <SerkleLoader size="xs" className="text-primary" />}
               {upload.status === 'success' && <CheckCircle2 className="size-5 text-green-500" />}
               {upload.status === 'error' && <AlertCircle className="size-5 text-destructive" />}
             </div>

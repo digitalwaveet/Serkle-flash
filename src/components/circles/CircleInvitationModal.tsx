@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
-import { Shield, ArrowRightLeft, Loader2 } from 'lucide-react';
+import { Shield, ArrowRightLeft } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useRespondToInvitation, CircleInvitation } from '@/hooks/useCircleInvitations';
@@ -102,7 +103,7 @@ const CircleInvitationModal: React.FC<CircleInvitationModalProps> = ({ invitatio
                   onClick={() => handleRespond(true)}
                   disabled={loading}
                 >
-                  {loading && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                  {loading && <SerkleLoader size="xs" className="text-current mr-1" />}
                   Accept
                 </Button>
               </div>

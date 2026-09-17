@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -376,7 +377,7 @@ const CirclePosts: React.FC<CirclePostsProps> = ({ circle, isOwner }) => {
                   className="rounded-full px-5 flex-shrink-0"
                 >
                   {isSubmitting ? (
-                    <div className="h-3.5 w-3.5 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                    <SerkleLoader size="xs" className="text-primary-foreground" />
                   ) : (
                     <div className="flex items-center gap-1.5">
                       <span>Post</span>

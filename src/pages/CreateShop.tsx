@@ -1,9 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { Button } from '../components/ui/button';
 import { Input } from '../components/ui/input';
 import { Label } from '../components/ui/label';
 import { Textarea } from '../components/ui/textarea';
-import { ArrowLeft, Camera, Loader2, X } from 'lucide-react';
+import { ArrowLeft, Camera, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useShopItemMutations } from '../hooks/useShopItemMutations';
 import { useSellerProfile } from '../hooks/useSellerProfile';
@@ -90,7 +91,7 @@ const CreateShop: React.FC = () => {
           >
             {createItem.isPending ? (
               <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <SerkleLoader size="xs" className="text-current mr-2" />
                 Listing...
               </>
             ) : (

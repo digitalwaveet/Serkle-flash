@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Calendar, Clock, Users, Video, Upload, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { useEventMutations } from '@/hooks/useEventMutations';
 import CreateEventModal from './CreateEventModal';
 import EventAttendeesModal from './EventAttendeesModal';
 import CircleEmptyState from './CircleEmptyState';
-import { Loader2, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { CustomFilePicker } from '@/components/CustomFilePicker';
 
@@ -128,7 +129,7 @@ const CircleEvents: React.FC<CircleEventsProps> = ({ circle, isOwner }) => {
 
       {isLoading ? (
         <div className="flex items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin" />
+          <SerkleLoader size="md" className="text-current" />
         </div>
       ) : (
         <>
@@ -225,7 +226,7 @@ const CircleEvents: React.FC<CircleEventsProps> = ({ circle, isOwner }) => {
                               onClick={() => handleRegister(event)}
                               disabled={isRegistering}
                             >
-                              {isRegistering && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                              {isRegistering && <SerkleLoader size="xs" className="text-current mr-2" />}
                               {event.price > 0 ? 'Register & Pay' : 'Join Event'}
                             </Button>
                           )}
@@ -294,7 +295,7 @@ const CircleEvents: React.FC<CircleEventsProps> = ({ circle, isOwner }) => {
                             >
                               {uploadingEventId === event.id ? (
                                 <>
-                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  <SerkleLoader size="xs" className="text-current mr-2" />
                                   Uploading...
                                 </>
                               ) : (

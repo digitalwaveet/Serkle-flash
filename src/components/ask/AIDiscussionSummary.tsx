@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Sparkles, BadgeCheck, MessageCircle, AlertCircle, RefreshCw, ChevronDown, ChevronUp } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -108,7 +109,7 @@ export const AIDiscussionSummary: React.FC<AIDiscussionSummaryProps> = ({
               className="h-7 px-2 text-[11px] text-muted-foreground hover:text-primary gap-1"
               title="Refresh discussion summary with latest answers"
             >
-              <RefreshCw className={`w-3 h-3 ${generateSummaryMutation.isPending ? 'animate-spin' : ''}`} />
+              {generateSummaryMutation.isPending ? <SerkleLoader size="xs" className="mr-1 text-current" label="Refreshing" /> : <RefreshCw className="h-4 w-4 mr-1" />}
               <span className="hidden sm:inline">
                 {hasSummary ? 'Refresh' : 'Summarize'}
               </span>

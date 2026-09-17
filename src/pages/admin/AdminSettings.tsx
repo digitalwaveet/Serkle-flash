@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -117,9 +118,7 @@ export default function AdminSettings() {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold text-foreground">App Configuration</h1>
         <div className="space-y-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i} className="animate-pulse"><CardContent className="p-6 h-16" /></Card>
-          ))}
+          <div className="col-span-full flex min-h-24 w-full items-center justify-center py-8"><SerkleLoader size="md" label="Loading data" /></div>
         </div>
       </div>
     );

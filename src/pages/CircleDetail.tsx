@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import { Skeleton } from '@/components/ui/skeleton';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import FooterNav from '@/components/FooterNav';
 import CirclePosts from '@/components/circles/CirclePosts';
@@ -192,19 +192,15 @@ const CircleDetail: React.FC<CircleDetailProps> = ({
     return (
       <div className="min-h-[100dvh] w-full max-w-[480px] mx-auto bg-background text-foreground pb-20">
         <div className="relative">
-          <Skeleton className="w-full h-28" />
+          <div className="h-20" />
           <div className="absolute top-4 left-4">
             <Button variant="ghost" size="icon" onClick={handleBack}>
               <ArrowLeft className="h-6 w-6" />
             </Button>
           </div>
         </div>
-        <div className="px-4 -mt-8 mb-3">
-          <Skeleton className="w-16 h-16 rounded-full" />
-        </div>
-        <div className="px-4 space-y-3">
-          <Skeleton className="h-7 w-3/4" />
-          <Skeleton className="h-10 w-full" />
+        <div className="min-h-64 flex items-center justify-center px-4">
+          <SerkleLoader label="Loading circle" showText />
         </div>
       </div>
     );
@@ -284,7 +280,7 @@ const CircleDetail: React.FC<CircleDetailProps> = ({
       return (
         <Button size={size} onClick={handleJoinCircle} disabled={isJoining}>
           {requiresSubscribeToJoin && <Crown className="h-3.5 w-3.5 mr-1" />}
-          {isJoining ? 'Loading...' : requiresSubscribeToJoin ? 'Subscribe' : 'Join'}
+          {isJoining ? <SerkleLoader size="xs" className="text-current" label="Joining circle" /> : requiresSubscribeToJoin ? 'Subscribe' : 'Join'}
         </Button>
       );
     }

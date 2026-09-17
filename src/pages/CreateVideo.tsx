@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Video, Image, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -122,7 +123,7 @@ const CreateVideo = () => {
               disabled={!videoFileItem || !title.trim() || isUploading}
               size="sm"
             >
-              {isUploading ? "Uploading..." : "Post"}
+              {isUploading ? <><SerkleLoader size="xs" className="text-current" label="Uploading video" /> Uploading...</> : "Post"}
             </Button>
           </div>
         </header>

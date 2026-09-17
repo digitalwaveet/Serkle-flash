@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Heart, MessageCircle, Share, Bookmark, Volume2, VolumeX, Plus, Check } from 'lucide-react';
 import { useHapticFeedback } from '@/hooks/useHapticFeedback';
@@ -543,16 +544,7 @@ export const RelaxVideoPlayer: React.FC<RelaxVideoPlayerProps> = ({
               {/* Enhanced loading indicator */}
               {videoIsLoading && isActive && (
                 <div className="absolute inset-0 flex items-center justify-center bg-gradient-radial from-black/30 via-black/20 to-transparent">
-                  <div className="relative">
-                    {/* Outer pulsing ring */}
-                    <div className="absolute inset-0 w-12 h-12 border-2 border-white/30 rounded-full animate-pulse" />
-                    {/* Spinning loader */}
-                    <div className="w-8 h-8 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                    {/* Inner dot */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-2 h-2 bg-card rounded-full animate-pulse" />
-                    </div>
-                  </div>
+                  <SerkleLoader dark label="Buffering video" />
                 </div>
               )}
 

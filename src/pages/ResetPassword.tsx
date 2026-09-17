@@ -1,6 +1,7 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, EyeOff, ArrowLeft, KeyRound, CheckCircle2, Mail, ShieldCheck, Loader2 } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, KeyRound, CheckCircle2, Mail, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -244,7 +245,7 @@ export default function ResetPassword() {
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <SerkleLoader size="xs" className="text-current mr-2" />
                     Sending link...
                   </>
                 ) : (
@@ -312,7 +313,7 @@ export default function ResetPassword() {
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <SerkleLoader size="xs" className="text-current mr-2" />
                     Verifying...
                   </>
                 ) : (
@@ -410,7 +411,7 @@ export default function ResetPassword() {
               >
                 {isLoading ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    <SerkleLoader size="xs" className="text-current mr-2" />
                     Updating password...
                   </>
                 ) : (

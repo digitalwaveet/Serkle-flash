@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -132,10 +133,7 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
             <div className="space-y-1">
               <p className="text-xs text-muted-foreground uppercase tracking-widest">Coin Balance</p>
               {isWalletLoading ? (
-                <div className="flex flex-col items-center gap-1.5">
-                  <div className="h-10 w-32 bg-muted animate-pulse rounded-lg" />
-                  <div className="h-4 w-20 bg-muted animate-pulse rounded" />
-                </div>
+                <SerkleLoader label="Loading balance" className="py-3" />
               ) : (
                 <>
                   <p className="text-4xl font-bold text-foreground">{balance.toLocaleString()}</p>
@@ -147,7 +145,7 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
               <div className="flex flex-col items-center px-5 py-3 rounded-xl bg-card/50 backdrop-blur-sm border border-border/30">
                 <TrendingUp className="w-4 h-4 text-green-500 mb-1" />
                 {isWalletLoading ? (
-                  <div className="h-5 w-12 bg-muted animate-pulse rounded mb-1" />
+                  <SerkleLoader size="xs" label="Loading balance" className="mb-1" />
                 ) : (
                   <span className="text-sm font-semibold text-foreground">{totalEarned.toLocaleString()}</span>
                 )}
@@ -156,7 +154,7 @@ const WalletModal: React.FC<WalletModalProps> = ({ isOpen, onClose }) => {
               <div className="flex flex-col items-center px-5 py-3 rounded-xl bg-card/50 backdrop-blur-sm border border-border/30">
                 <TrendingDown className="w-4 h-4 text-red-500 mb-1" />
                 {isWalletLoading ? (
-                  <div className="h-5 w-12 bg-muted animate-pulse rounded mb-1" />
+                  <SerkleLoader size="xs" label="Loading balance" className="mb-1" />
                 ) : (
                   <span className="text-sm font-semibold text-foreground">{totalSpent.toLocaleString()}</span>
                 )}

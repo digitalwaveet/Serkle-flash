@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useCircleVideos, CircleVideo } from '@/hooks/useCircleVideos';
 import CircleEmptyState from './CircleEmptyState';
@@ -6,7 +7,7 @@ import { CircleVideoCard } from './CircleVideoCard';
 import CircleVideoPlayer from './CircleVideoPlayer';
 import CircleVideoComposer from './CircleVideoComposer';
 import { Button } from '@/components/ui/button';
-import { Plus, Play, ListVideo, Film, ChevronRight, Loader2, Search, LayoutGrid, Trash2, Edit } from 'lucide-react';
+import { Plus, Play, ListVideo, Film, ChevronRight, Search, LayoutGrid, Trash2, Edit } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import {
@@ -79,7 +80,7 @@ const CircleVideos: React.FC<CircleVideosProps> = ({ circle, isOwner }) => {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="size-8 text-primary animate-spin" />
+        <SerkleLoader size="md" className="text-primary" />
         <p className="text-sm text-muted-foreground">Loading videos...</p>
       </div>
     );

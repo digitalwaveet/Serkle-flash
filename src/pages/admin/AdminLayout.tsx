@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Outlet, useNavigate, useLocation, Navigate, Link } from 'react-router-dom';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import {
@@ -15,38 +16,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-  LayoutDashboard,
-  Users,
-  FileText,
-  Video,
-  ArrowLeft,
-  Shield,
-  LogOut,
-  Bell,
-  UserCog,
-  MessageSquare,
-  Flag,
-  Scale,
-  BarChart3,
-  Settings,
-  MessageCircle,
-  Brain,
-  Bot,
-  Zap,
-  Webhook,
-  Activity,
-  ClipboardList,
-  ScrollText,
-  HeartPulse,
-  Megaphone,
-  CircleDot,
-  FileBarChart,
-  HelpCircle,
-  Radio,
-  Store,
-  Award,
-} from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Video, ArrowLeft, Shield, LogOut, Bell, UserCog, MessageSquare, Flag, Scale, BarChart3, Settings, MessageCircle, Brain, Bot, Zap, Webhook, Activity, ClipboardList, ScrollText, HeartPulse, Megaphone, CircleDot, FileBarChart, HelpCircle, Radio, Store, Award } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 const navSections = [
@@ -212,7 +182,7 @@ export default function AdminLayout() {
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+        <SerkleLoader size="md" className="text-current" />
       </div>
     );
   }

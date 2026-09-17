@@ -1,10 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { Calendar, Link as LinkIcon, MessageCircle, ExternalLink, Lock, X, Play, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
@@ -445,14 +445,7 @@ const PublicUserProfile: React.FC<PublicUserProfileProps> = ({
 
   if (isLoading || !user) {
     return (
-      <div className={`w-full ${className}`}>
-        <div className="space-y-4 p-4">
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-20 w-20 rounded-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
-      </div>
+      <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading profile" showText /></div>
     );
   }
 

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { Video } from '@/data/mock';
 import { Heart, MessageCircle, Share, Bookmark, Volume2, VolumeX } from 'lucide-react';
@@ -103,7 +104,7 @@ export const IndependentVideoPlayer: React.FC<IndependentVideoPlayerProps> = ({
       {/* Loading Overlay */}
       {isLoading && (
         <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
-          <video src="/loading-animation.mp4" autoPlay muted playsInline loop className="w-10 h-10 object-contain" />
+          <SerkleLoader size="md" dark label="Buffering video" />
         </div>
       )}
 

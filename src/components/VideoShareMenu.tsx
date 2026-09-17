@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Link2, Send, Download, X, Check, BookImage } from 'lucide-react';
 import { VideoLoader } from '@/components/ui/VideoLoader';
 import { supabase } from '@/integrations/supabase/client';
@@ -285,7 +286,7 @@ export const VideoShareMenu: React.FC<VideoShareMenuProps> = ({
             className="flex items-center gap-4 w-full p-3 rounded-xl hover:bg-muted transition-colors"
           >
             <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-              <Download className={cn("w-5 h-5 text-foreground", saving && "animate-pulse")} />
+              {saving ? <SerkleLoader size="xs" label="Saving video" /> : <Download className="w-5 h-5 text-foreground" />}
             </div>
             <span className="text-sm font-medium text-foreground">
               {saving ? 'Saving...' : 'Save Video'}

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -55,9 +56,7 @@ export const ExpertAnswersCarousel: React.FC<ExpertAnswersCarouselProps> = ({ on
           Verified Experts
         </h2>
         <div className="flex gap-2">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-20 w-32 bg-muted/50 rounded-lg animate-pulse flex-shrink-0" />
-          ))}
+          <div className="col-span-full flex min-h-24 w-full items-center justify-center py-8"><SerkleLoader size="sm" label="Loading answers" /></div>
         </div>
       </div>
     );

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -7,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, DollarSign, Clock, Coins, AlertCircle } from 'lucide-react';
+import { DollarSign, Clock, Coins, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { useCoinWallet } from '@/hooks/useCoinWallet';
 import { useUser } from '@/contexts/UserContext';
@@ -221,7 +222,7 @@ const BookServiceModal: React.FC<BookServiceModalProps> = ({
                 Cancel
               </Button>
               <Button type="submit" disabled={isLoading || (!hasEnoughCoins && service.price > 0)}>
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                {isLoading && <SerkleLoader size="xs" className="text-current mr-2" />}
                 Book ({service.price} coins)
               </Button>
             </div>

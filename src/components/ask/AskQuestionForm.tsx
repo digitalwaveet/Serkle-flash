@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useCallback } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -601,7 +602,7 @@ export const AskQuestionForm: React.FC<AskQuestionFormProps> = ({
             >
               {createQuestion.isPending ? (
                 <>
-                  <video src="/loading-animation.mp4" autoPlay muted playsInline loop className="w-5 h-5 object-contain mr-2" />
+                  <SerkleLoader size="xs" className="text-current object-contain mr-2" />
                   Posting...
                 </>
               ) : (

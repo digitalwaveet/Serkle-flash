@@ -1,10 +1,11 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Calendar, Clock, Mail, Phone, User, CheckCircle, XCircle } from 'lucide-react';
+import { Calendar, Clock, Mail, Phone, User, CheckCircle, XCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Select,
@@ -119,7 +120,7 @@ const ServiceBookingsModal: React.FC<ServiceBookingsModalProps> = ({
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <SerkleLoader size="md" className="text-primary" />
           </div>
         ) : bookings.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">

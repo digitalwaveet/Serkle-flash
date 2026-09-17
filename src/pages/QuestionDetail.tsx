@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -13,29 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import anonymousLogo from '@/assets/anonymous-logo.png';
 import { AnonymousAvatar } from '@/components/ask/AnonymousAvatar';
 import { AIDiscussionSummary } from '@/components/ask/AIDiscussionSummary';
-import { 
-  ThumbsUp, 
-  MessageCircle, 
-  Sparkles, 
-  Share2, 
-  Bookmark, 
-  Loader2, 
-  ArrowLeft, 
-  Edit3, 
-  CheckCircle2, 
-  BadgeCheck, 
-  Pencil, 
-  Trash2, 
-  Heart, 
-  Check,
-  Bell,
-  BellRing,
-  GitBranch,
-  ImagePlus,
-  X,
-  Clock,
-  Plus
-} from 'lucide-react';
+import { ThumbsUp, MessageCircle, Sparkles, Share2, Bookmark, ArrowLeft, Edit3, CheckCircle2, BadgeCheck, Pencil, Trash2, Heart, Check, Bell, BellRing, GitBranch, ImagePlus, X, Clock, Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -534,7 +513,7 @@ export default function QuestionDetail() {
   if (questionLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }
@@ -864,7 +843,7 @@ export default function QuestionDetail() {
                 {/* NODES 2..N: Updates */}
                 {threadLoading && (
                   <div className="flex justify-center py-4">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    <SerkleLoader size="sm" className="text-primary" />
                   </div>
                 )}
 
@@ -1132,7 +1111,7 @@ export default function QuestionDetail() {
                           >
                             {isUploadingImage || createThreadUpdate.isPending ? (
                               <>
-                                <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+                                <SerkleLoader size="xs" className="text-current mr-1.5" />
                                 Posting...
                               </>
                             ) : (
@@ -1180,7 +1159,7 @@ export default function QuestionDetail() {
 
           {answersLoading && (
             <div className="flex justify-center py-8">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+              <SerkleLoader size="sm" className="text-primary" />
             </div>
           )}
 

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -292,7 +293,7 @@ export const HelperResponse: React.FC = () => {
                         disabled={markAsArrived.isPending}
                       >
                         {markAsArrived.isPending ? (
-                          <div className="h-4 w-4 mr-1 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <SerkleLoader size="xs" className="text-white mr-1" />
                         ) : (
                           <MapPin className="h-4 w-4 mr-1" />
                         )}
@@ -334,7 +335,7 @@ export const HelperResponse: React.FC = () => {
                       disabled={completeHelp.isPending}
                     >
                       {completeHelp.isPending ? (
-                        <div className="h-4 w-4 mr-1 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <SerkleLoader size="xs" className="text-white mr-1" />
                       ) : (
                         <CheckCircle className="h-4 w-4 mr-1" />
                       )}

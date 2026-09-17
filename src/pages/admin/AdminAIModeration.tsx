@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,10 +13,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAdminAudit } from '@/hooks/useAdminAudit';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
-import {
-  Brain, Shield, AlertTriangle, Search, ChevronLeft, ChevronRight,
-  Play, CheckCircle, XCircle, Eye, Loader2, Zap,
-} from 'lucide-react';
+import { Brain, Shield, AlertTriangle, Search, ChevronLeft, ChevronRight, Play, CheckCircle, XCircle, Eye, Zap } from 'lucide-react';
 
 interface ModerationResult {
   id: string;
@@ -223,7 +221,7 @@ export default function AdminAIModeration() {
           <h1 className="text-2xl font-bold text-foreground">AI Content Moderation</h1>
         </div>
         <Button onClick={scanRecentPosts} disabled={scanning}>
-          {scanning ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Zap className="h-4 w-4 mr-2" />}
+          {scanning ? <SerkleLoader size="xs" className="text-current mr-2" /> : <Zap className="h-4 w-4 mr-2" />}
           {scanning ? 'Scanning...' : 'Scan Recent Posts'}
         </Button>
       </div>
@@ -232,7 +230,7 @@ export default function AdminAIModeration() {
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
-              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <SerkleLoader size="xs" className="text-primary" />
               <div className="flex-1">
                 <p className="text-sm font-medium">AI scanning in progress...</p>
                 <Progress value={scanProgress} className="mt-2" />
@@ -331,9 +329,7 @@ export default function AdminAIModeration() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}><TableCell colSpan={7} className="h-14"><div className="h-4 bg-muted rounded animate-pulse" /></TableCell></TableRow>
-                ))
+                <TableRow><TableCell colSpan={7} className="h-32 text-center"><SerkleLoader label="Loading records" showText /></TableCell></TableRow>
               ) : results.length === 0 ? (
                 <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">No moderation results. Click "Scan Recent Posts" to start.</TableCell></TableRow>
               ) : results.map((r) => (

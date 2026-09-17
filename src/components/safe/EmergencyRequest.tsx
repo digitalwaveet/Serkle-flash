@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -185,7 +186,7 @@ export const EmergencyRequest: React.FC = () => {
                 disabled={photoManager.files.length >= 3 || isUploading}
               >
                 <Camera className="h-4 w-4" />
-                {isUploading ? 'Uploading...' : 'Add Photo'}
+                {isUploading ? <><SerkleLoader size="xs" className="text-current" /> Uploading...</> : 'Add Photo'}
               </Button>
             </CustomFilePicker>
           </div>
@@ -214,7 +215,7 @@ export const EmergencyRequest: React.FC = () => {
           >
             {createAlert.isPending ? (
               <div className="flex items-center gap-2">
-                <video src="/loading-animation.mp4" autoPlay muted playsInline loop className="w-5 h-5 object-contain" />
+                <SerkleLoader size="xs" className="text-current object-contain" />
                 Sending Help Request...
               </div>
             ) : (

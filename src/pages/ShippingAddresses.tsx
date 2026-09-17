@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Plus, Edit, Trash2, MapPin, Check } from 'lucide-react';
@@ -5,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useShippingAddresses, useAddressMutations } from '@/hooks/useShippingAddresses';
-import { Loader2 } from 'lucide-react';
+
 import FooterNav from '@/components/FooterNav';
 import { AddressFormModal } from '@/components/shop/AddressFormModal';
 
@@ -39,7 +40,7 @@ const ShippingAddresses: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }
@@ -140,7 +141,7 @@ const ShippingAddresses: React.FC = () => {
                     disabled={deleteAddress.isPending || address.is_default}
                   >
                     {deleteAddress.isPending ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <SerkleLoader size="xs" className="text-current" />
                     ) : (
                       <Trash2 className="w-4 h-4" />
                     )}

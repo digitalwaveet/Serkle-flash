@@ -1,12 +1,12 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft, Loader2, Plus, X, Pencil, Reply, Pin, Check, CheckCheck, Users, Search, ChevronUp, ChevronDown, Clock, AlertCircle } from 'lucide-react';
+import { Send, ArrowLeft, Plus, X, Pencil, Reply, Pin, Check, CheckCheck, Users, Search, ChevronUp, ChevronDown, Clock, AlertCircle } from 'lucide-react';
 import { useMessages, useSendMessage, useOtherUserLastRead, useRetryMessage } from '@/hooks/useMessages';
 import { useMessageReactions, useEditMessage, useDeleteMessage, useForwardMessage, usePinnedMessage } from '@/hooks/useMessageActions';
 import { useConversations, Conversation } from '@/hooks/useConversations';
 import { formatDistanceToNow } from 'date-fns';
-import { Skeleton } from '@/components/ui/skeleton';
 import { usePresence } from '@/hooks/usePresence';
 import { supabase } from '@/integrations/supabase/client';
 import { useLiveQuery } from 'dexie-react-hooks';
@@ -855,7 +855,7 @@ const ChatView: React.FC<ChatViewProps> = ({
               disabled={isLoading || isSyncing}
             >
               {(isLoading || isSyncing) ? (
-                <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                <SerkleLoader size="xs" className="text-current mr-1" />
               ) : null}
               Load older messages
             </Button>
@@ -877,20 +877,7 @@ const ChatView: React.FC<ChatViewProps> = ({
           </div>
         )}
         {isLoading || (isSyncing && visibleMessages.length === 0) ? (
-          <div className="space-y-4 animate-in fade-in duration-500">
-            {[1, 2, 3, 4, 5].map((i) => (
-              <div 
-                key={i} 
-                className={`flex gap-3 ${i % 2 === 0 ? 'flex-row-reverse' : 'flex-row'}`}
-              >
-                <Skeleton className="h-9 w-9 rounded-full shrink-0 mt-auto" />
-                <div className={`flex flex-col gap-1 max-w-[70%] ${i % 2 === 0 ? 'items-end' : 'items-start'}`}>
-                  <Skeleton className={`h-16 w-48 rounded-2xl ${i % 2 === 0 ? 'rounded-br-none bg-primary/20' : 'rounded-bl-none bg-muted/60'}`} />
-                  <Skeleton className="h-3 w-16 rounded-full opacity-50" />
-                </div>
-              </div>
-            ))}
-          </div>
+          <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading messages" showText /></div>
         ) : visibleMessages.length === 0 ? (
           <div className="flex items-center justify-center h-full text-center px-4">
             <div className="animate-fade-in">
@@ -1125,7 +1112,7 @@ const ChatView: React.FC<ChatViewProps> = ({
                       message.sync_status === 'pending'
                         ? <Clock className="h-3.5 w-3.5 text-muted-foreground/50" />
                         : message.sync_status === 'sending'
-                          ? <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
+                          ? <SerkleLoader size="xs" className="text-primary" />
                           : message.sync_status === 'failed'
                             ? <div className="flex items-center gap-1 group cursor-pointer" onClick={(e) => { e.stopPropagation(); retryMessage.mutate(message.id); }}>
                                 <AlertCircle className="h-3.5 w-3.5 text-destructive" />
@@ -1230,7 +1217,7 @@ const ChatView: React.FC<ChatViewProps> = ({
               className="shrink-0 h-11 w-11 rounded-full bg-primary flex items-center justify-center active:scale-90 transition-all disabled:opacity-50 shadow-sm"
             >
               {isSending || editMessage.isPending ? (
-                <Loader2 className="h-5 w-5 text-primary-foreground animate-spin" />
+                <SerkleLoader size="xs" className="text-primary-foreground" />
               ) : editingMessage ? (
                 <Pencil className="h-5 w-5 text-primary-foreground" />
               ) : (

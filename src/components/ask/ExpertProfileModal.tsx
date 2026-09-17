@@ -1,10 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
 import { BadgeCheck, MessageCircle, ArrowLeft, MessageSquare, ThumbsUp, Users, Info, GraduationCap, CheckCircle2 } from 'lucide-react';
 import { useUser } from '@/contexts/UserContext';
 import { useCreateConversation } from '@/hooks/useConversations';
@@ -277,13 +277,7 @@ export const ExpertProfileModal: React.FC<ExpertProfileModalProps> = ({ open, on
 
             <TabsContent value="answers" className="mt-3 space-y-3">
               {answersLoading ? (
-                Array.from({ length: 3 }).map((_, i) => (
-                  <div key={i} className="rounded-xl bg-card/40 backdrop-blur-sm border border-border/30 p-4 space-y-2">
-                    <Skeleton className="h-3 w-1/2" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-3 w-3/4" />
-                  </div>
-                ))
+                <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading profile" showText /></div>
               ) : !answers || answers.length === 0 ? (
                 <div className="text-center py-10 text-muted-foreground text-sm">
                   <MessageSquare className="w-8 h-8 mx-auto mb-2 opacity-40" />

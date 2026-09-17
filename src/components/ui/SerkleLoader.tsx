@@ -1,38 +1,30 @@
 import React from 'react';
+import { cn } from '@/lib/utils';
+import './SerkleLoader.css';
 
-interface SerkleLoaderProps {
-  size?: 'sm' | 'md' | 'lg' | 'xl';
-  className?: string;
+export interface SerkleLoaderProps extends React.HTMLAttributes<HTMLSpanElement> {
+  size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
+  /** Kept for pull-to-refresh: a resting wordmark should not animate. */
   pulse?: boolean;
   showText?: boolean;
+  label?: string;
+  dark?: boolean;
 }
 
-export const SerkleLoader: React.FC<SerkleLoaderProps> = ({
-  size = 'md',
-  className = '',
-  pulse = true,
-  showText = false,
-}) => {
-  const sizeClasses = {
-    sm: 'w-16 h-16',
-    md: 'w-24 h-24',
-    lg: 'w-32 h-32',
-    xl: 'w-40 h-40',
-  };
-
-  return (
-    <div className={`flex flex-col items-center justify-center gap-3 ${className}`}>
-      <img
-        src="/lovable-uploads/SerkleLogoMarkWhiteColor.svg"
-        alt="Loading..."
-        className={`${sizeClasses[size]} object-contain ${pulse ? 'heart-pulse' : ''}`}
-        style={{ filter: 'drop-shadow(0 4px 12px rgba(113, 58, 32, 0.3))' }}
-      />
-      {showText && (
-        <p className="splash-loading-text text-sm font-semibold tracking-wide">
-          Loading
-        </p>
-      )}
-    </div>
-  );
-};
+/** One lightweight, accessible loading language for requests, uploads and media. */
+export const SerkleLoader = ({
+  size = 'md', className, pulse = true, showText = false,
+  label = 'Loading', dark = false, ...props
+}: SerkleLoaderProps) => (
+  <span role="status" aria-live="polite" aria-label={label} {...props}
+    className={cn('serkle-loader text-primary', `serkle-loader--${size}`,
+      !pulse && 'serkle-loader--still', dark && 'text-[#fff4e5]', className)}>
+    <span className="serkle-loader__word" aria-hidden="true">
+      {'SERKLE'.split('').map((letter, index) => (
+        <span key={index} className="serkle-loader__letter"
+          style={{ '--letter-index': index } as React.CSSProperties}>{letter}</span>
+      ))}
+    </span>
+    {showText && <span className="serkle-loader__label" aria-hidden="true">{label}</span>}
+  </span>
+);

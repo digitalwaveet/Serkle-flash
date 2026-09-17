@@ -125,7 +125,7 @@ export const UnifiedRelaxView: React.FC<UnifiedRelaxViewProps> = ({
     return (
       <div className="fixed inset-0 bg-background flex flex-col items-center justify-center gap-4">
         <SerkleLoader size="lg" pulse={true} />
-        <div className="text-muted-foreground animate-pulse font-medium text-sm">Loading videos...</div>
+        <div className="text-muted-foreground font-medium text-sm">Loading videos...</div>
       </div>
     );
   }
@@ -163,7 +163,7 @@ export const UnifiedRelaxView: React.FC<UnifiedRelaxViewProps> = ({
             }}
           >
             <div className="bg-background/80 backdrop-blur-sm p-2 rounded-full shadow-lg border border-white/10">
-              <SerkleLoader size="sm" pulse={isRefreshing} className={isRefreshing ? "animate-spin-slow" : ""} />
+              <SerkleLoader size="sm" pulse={isRefreshing} label={isRefreshing ? 'Refreshing videos' : 'Pull to refresh'} />
             </div>
           </div>
         )}

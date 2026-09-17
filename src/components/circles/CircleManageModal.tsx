@@ -1,6 +1,7 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { DoorOpen, Trash2, ArrowRightLeft, ShieldPlus, Loader2, Lock } from 'lucide-react';
+import { DoorOpen, Trash2, ArrowRightLeft, ShieldPlus, Lock } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -266,7 +267,7 @@ const CircleManageModal: React.FC<CircleManageModalProps> = ({ circle, open, onO
                     onClick={handleVerifyAndTransfer}
                     disabled={!password.trim() || verifying || sending}
                   >
-                    {(verifying || sending) && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                    {(verifying || sending) && <SerkleLoader size="xs" className="text-current mr-1" />}
                     {verifying ? 'Verifying...' : sending ? 'Sending...' : 'Confirm & Send'}
                   </Button>
                 </div>
@@ -298,7 +299,7 @@ const CircleManageModal: React.FC<CircleManageModalProps> = ({ circle, open, onO
                     onClick={handleSendAdminInvites}
                     disabled={selectedFriends.length === 0 || sending}
                   >
-                    {sending && <Loader2 className="h-4 w-4 animate-spin mr-1" />}
+                    {sending && <SerkleLoader size="xs" className="text-current mr-1" />}
                     Send {selectedFriends.length > 0 ? `(${selectedFriends.length})` : ''} Invite{selectedFriends.length > 1 ? 's' : ''}
                   </Button>
                 </div>

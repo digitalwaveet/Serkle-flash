@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useRef, useEffect } from 'react';
-import { Download, MapPin, Play, Pause, ExternalLink, Loader2, Image as ImageIcon, Film } from 'lucide-react';
+import { Download, MapPin, Play, Pause, ExternalLink, Image as ImageIcon, Film } from 'lucide-react';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -112,7 +113,7 @@ const PhotoBubble: React.FC<{ url: string; caption: string; isOwn: boolean }> = 
         <div className="relative max-w-[260px] max-h-[320px] overflow-hidden rounded-lg bg-muted/20">
           {(isLoading || isOptimistic) && (
             <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-muted/30 backdrop-blur-[2px]">
-              <Loader2 className="h-6 w-6 animate-spin text-primary opacity-60" />
+              <SerkleLoader size="sm" className="text-primary opacity-60" />
               <span className="mt-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest">
                 {isOptimistic ? 'Sending...' : 'Downloading...'}
               </span>
@@ -174,7 +175,7 @@ const VideoBubble: React.FC<{ url: string; caption: string; isOwn: boolean }> = 
       <div className="relative cursor-pointer overflow-hidden rounded-2xl border border-border/50 shadow-sm max-w-[260px] max-h-[320px] bg-muted/20" onClick={togglePlay}>
         {(isLoading || isOptimistic) && (
           <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-muted/40 backdrop-blur-[2px]">
-            <Loader2 className="h-6 w-6 animate-spin text-primary opacity-60" />
+            <SerkleLoader size="sm" className="text-primary opacity-60" />
             <span className="mt-2 text-[10px] font-medium text-muted-foreground uppercase tracking-widest text-center px-4">
               {isOptimistic ? 'Sending Video...' : 'Downloading Video...'}
             </span>
@@ -270,7 +271,7 @@ const VoiceBubble: React.FC<{ url: string; content: string; isOwn: boolean }> = 
         } ${isLoading ? 'opacity-50 cursor-not-allowed' : ''}`}
       >
         {isLoading ? (
-          <Loader2 className={`h-4 w-4 animate-spin ${isOwn ? 'text-primary-foreground' : 'text-primary'}`} />
+          <SerkleLoader size="xs" className={`${isOwn ?'text-primary-foreground':'text-primary'}`} />
         ) : playing ? (
           <Pause className={`h-5 w-5 ${isOwn ? 'text-primary-foreground' : 'text-primary'}`} />
         ) : (

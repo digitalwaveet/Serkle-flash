@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { X, Eye, Heart, MessageCircle, BarChart3, ArrowLeft, Send } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -144,7 +145,7 @@ const StoryActivityModal: React.FC<StoryActivityModalProps> = ({ isOpen, onClose
           <TabsContent value="insights" className="flex-1 overflow-y-auto p-4">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <SerkleLoader size="sm" className="text-current" />
               </div>
             ) : (
               <div className="grid grid-cols-3 gap-3">
@@ -159,7 +160,7 @@ const StoryActivityModal: React.FC<StoryActivityModalProps> = ({ isOpen, onClose
           <TabsContent value="views" className="flex-1 overflow-y-auto p-4 space-y-2">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <SerkleLoader size="sm" className="text-current" />
               </div>
             ) : viewers.length === 0 ? (
               <p className="text-center text-muted-foreground text-sm py-8">No views yet</p>
@@ -198,7 +199,7 @@ const StoryActivityModal: React.FC<StoryActivityModalProps> = ({ isOpen, onClose
           <TabsContent value="messages" className="flex-1 overflow-y-auto p-4 space-y-2">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="size-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <SerkleLoader size="sm" className="text-current" />
               </div>
             ) : messages.length === 0 ? (
               <p className="text-center text-muted-foreground text-sm py-8">No messages yet</p>

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Bell, Send, Shield, Info, RefreshCw, Trash2, Code } from 'lucide-react';
@@ -149,7 +150,7 @@ const TestPush = () => {
               >
                 {isSending ? (
                   <>
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-primary border-t-transparent rounded-full" />
+                    <SerkleLoader size="xs" className="text-current mr-2" />
                     Sending...
                   </>
                 ) : (

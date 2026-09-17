@@ -1,9 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MapPin, Clock, Users, MessageCircle, Navigation, Loader2 } from 'lucide-react';
+import { MapPin, Clock, Users, MessageCircle, Navigation } from 'lucide-react';
 import { useSOSAlerts } from '@/hooks/useSOSAlerts';
 import { useGeolocation } from '@/hooks/useGeolocation';
 import { formatDistanceToNow } from 'date-fns';
@@ -35,7 +36,7 @@ export const EmergencyFeed: React.FC = () => {
   if (isLoading) {
     return (
       <div className="px-4 py-12 flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { AlertTriangle } from 'lucide-react';
 import { Story } from '@/types/storyTypes';
 import { StoryCanvas } from './StoryCanvas';
@@ -151,7 +152,7 @@ export const StoryMediaRenderer: React.FC<StoryMediaRendererProps> = ({
             {/* Skeleton shimmer until the image is fully loaded — no partial reveal */}
             {!imgLoaded && (
               <div className="absolute inset-0 z-[1] flex items-center justify-center">
-                <div className="media-shimmer absolute inset-0" />
+                <SerkleLoader dark label="Loading story" />
               </div>
             )}
             <img

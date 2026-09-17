@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useProgressiveMedia } from '@/hooks/useProgressiveMedia';
 import styles from './ProgressiveMedia.module.css';
 import { cn } from '@/lib/utils';
@@ -38,7 +39,9 @@ export const ProgressiveMedia: React.FC<ProgressiveMediaProps> = ({
   // State: Initial Shimmer (during reading/compressing)
   if (phase === 'reading' || phase === 'compressing' || phase === 'idle') {
     return (
-      <div className={cn(styles.shimmer, aspectRatio, "w-full rounded-xl", className)} />
+      <div className={cn(aspectRatio, "w-full rounded-xl bg-muted/30 flex items-center justify-center", className)}>
+        <SerkleLoader label={phase === 'compressing' ? 'Optimizing file' : 'Preparing preview'} showText />
+      </div>
     );
   }
 
@@ -84,8 +87,8 @@ export const ProgressiveMedia: React.FC<ProgressiveMediaProps> = ({
 
       {/* 4. Progress Bar (during full loading) */}
       {(phase === 'loading-full' || phase === 'preview') && (
-        <div className={styles.progressBarContainer}>
-          <div className={cn(styles.progressBar, styles.progressIndeterminate)} />
+        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+          <SerkleLoader size="sm" dark label="Loading preview" showText />
         </div>
       )}
 

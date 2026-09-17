@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Send, Image as ImageIcon, MoreVertical } from 'lucide-react';
@@ -6,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useShopConversations, useShopMessages, useShopMessageMutations } from '@/hooks/useShopMessages';
-import { Loader2 } from 'lucide-react';
+
 import FooterNav from '@/components/FooterNav';
 import { format } from 'date-fns';
 
@@ -55,7 +56,7 @@ const ShopMessages: React.FC = () => {
         <div className="p-4 space-y-2">
           {conversationsLoading ? (
             <div className="flex justify-center py-12">
-              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+              <SerkleLoader size="md" className="text-primary" />
             </div>
           ) : !conversations || conversations.length === 0 ? (
             <Card className="p-12 text-center">
@@ -148,7 +149,7 @@ const ShopMessages: React.FC = () => {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messagesLoading ? (
           <div className="flex justify-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            <SerkleLoader size="md" className="text-primary" />
           </div>
         ) : !messages || messages.length === 0 ? (
           <div className="text-center py-12">
@@ -205,7 +206,7 @@ const ShopMessages: React.FC = () => {
             disabled={!messageText.trim() || sendMessage.isPending}
           >
             {sendMessage.isPending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <SerkleLoader size="xs" className="text-current" />
             ) : (
               <Send className="w-4 h-4" />
             )}

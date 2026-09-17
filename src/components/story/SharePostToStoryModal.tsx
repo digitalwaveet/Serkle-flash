@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { VideoLoader } from '@/components/ui/VideoLoader';
@@ -364,7 +365,7 @@ const SharePostToStoryModal: React.FC<SharePostToStoryModalProps> = ({ isOpen, o
         {isUploading && (
           <div className="flex flex-col items-center gap-4 animate-fade-in">
             <div className="relative">
-              <div className="size-20 rounded-full border-4 border-muted animate-spin" style={{ borderTopColor: 'hsl(var(--primary))' }} />
+              <SerkleLoader size="md" dark label="Uploading story" />
             </div>
             <p className="text-white text-lg font-medium">Sharing to story...</p>
             <p className="text-white/60 text-sm">Uploading your post</p>
@@ -393,7 +394,7 @@ const SharePostToStoryModal: React.FC<SharePostToStoryModalProps> = ({ isOpen, o
     return (
       <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/90 backdrop-blur-sm animate-in fade-in duration-200">
         <VideoLoader size="lg" dark />
-        <p className="text-white/80 mt-6 font-medium animate-pulse">Preparing story...</p>
+        <p className="text-white/80 mt-6 font-medium">Preparing story...</p>
       </div>
     );
   }

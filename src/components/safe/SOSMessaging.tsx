@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -245,7 +246,7 @@ export const SOSMessaging: React.FC<SOSMessagingProps> = ({ alertId, isOpen, onC
               className="shrink-0 touch-target"
             >
               {sendMessage.isPending ? (
-                <div className="h-4 w-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                <SerkleLoader size="xs" className="text-primary-foreground" />
               ) : (
                 <Send className="h-4 w-4" />
               )}

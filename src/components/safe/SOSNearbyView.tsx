@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -304,7 +305,7 @@ export const SOSNearbyView: React.FC = () => {
       {locationLoading && !latitude && !longitude && (
         <Card className="p-4 bg-blue-50 border-blue-200">
           <div className="flex items-center gap-3">
-            <div className="h-5 w-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            <SerkleLoader size="xs" className="text-current" />
             <div>
               <p className="font-medium text-blue-900">Getting your location...</p>
               <p className="text-xs text-blue-700">This may take a few seconds</p>
@@ -480,7 +481,7 @@ export const SOSNearbyView: React.FC = () => {
                           disabled={updateAlertStatus.isPending}
                         >
                           {updateAlertStatus.isPending ? (
-                            <div className="h-4 w-4 mr-1 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <SerkleLoader size="xs" className="text-white mr-1" />
                           ) : (
                             <CheckCircle className="h-4 w-4 mr-1" />
                           )}
@@ -515,7 +516,7 @@ export const SOSNearbyView: React.FC = () => {
                           disabled={respondToAlert.isPending || !latitude || !longitude}
                         >
                           {respondToAlert.isPending ? (
-                            <div className="h-4 w-4 mr-1 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <SerkleLoader size="xs" className="text-white mr-1" />
                           ) : (
                             <Users className="h-4 w-4 mr-1" />
                           )}

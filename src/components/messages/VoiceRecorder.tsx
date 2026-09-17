@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useRef, useState, useCallback, useEffect } from 'react';
-import { Mic, X, Lock, Send, Loader2 } from 'lucide-react';
+import { Mic, X, Lock, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -238,7 +239,7 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ conversationId, onSend })
   if (uploading) {
     return (
       <div className="p-2 shrink-0">
-        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        <SerkleLoader size="xs" className="text-primary" />
       </div>
     );
   }

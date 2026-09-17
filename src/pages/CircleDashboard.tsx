@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Users, MessageSquare, Video, FolderOpen, CalendarDays, Crown, Coins, Heart, MessageCircle } from 'lucide-react';
@@ -6,7 +7,6 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip,
 import { format, startOfWeek, subWeeks } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useCircle } from '@/hooks/useCircles';
 import { useUser } from '@/contexts/UserContext';
 import { supabase } from '@/integrations/supabase/client';
@@ -136,15 +136,7 @@ const CircleDashboard: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[100dvh] w-full max-w-[480px] mx-auto bg-background p-4 space-y-4">
-        <Skeleton className="h-10 w-full" />
-        <div className="grid grid-cols-2 gap-3">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-24 w-full rounded-lg" />
-          ))}
-        </div>
-        <Skeleton className="h-56 w-full rounded-lg" />
-      </div>
+      <div className="min-h-[100dvh] w-full flex items-center justify-center py-8"><SerkleLoader label="Loading circles" showText /></div>
     );
   }
 

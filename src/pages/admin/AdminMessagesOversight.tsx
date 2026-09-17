@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminAudit } from '@/hooks/useAdminAudit';
@@ -208,7 +209,7 @@ export default function AdminMessagesOversight() {
             </ResponsiveContainer>
           ) : (
             <div className="h-[200px] flex items-center justify-center">
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" />
+              <SerkleLoader size="sm" className="text-current" />
             </div>
           )}
         </CardContent>
@@ -225,7 +226,7 @@ export default function AdminMessagesOversight() {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+              <SerkleLoader size="md" className="text-current" />
             </div>
           ) : (
             <Table>

@@ -1,10 +1,8 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Coins, ArrowRight, ArrowLeft, Loader2,
-  Shield, Mail
-} from 'lucide-react';
+import { Coins, ArrowRight, ArrowLeft, Shield, Mail } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -187,7 +185,7 @@ export const WalletTopUpTab: React.FC<WalletTopUpTabProps> = ({
                   disabled={isUpdatingProfile || !tempEmail.trim()}
                   className="rounded-lg h-8 text-xs shrink-0"
                 >
-                  {isUpdatingProfile ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Save'}
+                  {isUpdatingProfile ? <SerkleLoader size="xs" className="text-current" /> : 'Save'}
                 </Button>
               </div>
             </div>
@@ -325,7 +323,7 @@ export const WalletTopUpTab: React.FC<WalletTopUpTabProps> = ({
             >
               {initiateTopUp.isPending || isVerifying ? (
                 <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <SerkleLoader size="xs" className="text-current" />
                   {isVerifying ? 'Verifying payment…' : 'Connecting to Chapa…'}
                 </>
               ) : (

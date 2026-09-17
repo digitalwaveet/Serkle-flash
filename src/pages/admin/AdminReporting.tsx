@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,10 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import {
-  Download, BarChart3, FileText, Users, Video, ShoppingBag,
-  MessageSquare, TrendingUp, Calendar, Loader2,
-} from 'lucide-react';
+import { Download, BarChart3, FileText, Users, Video, ShoppingBag, MessageSquare, TrendingUp, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 type ReportType = 'users' | 'content' | 'commerce' | 'engagement';
@@ -195,7 +193,7 @@ export default function AdminReporting() {
           <TabsContent key={t} value={t} className="mt-4">
             <div className="flex justify-center mb-6">
               <Button onClick={() => generateReport(t as ReportType)} disabled={loading} size="lg">
-                {loading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <BarChart3 className="h-4 w-4 mr-2" />}
+                {loading ? <SerkleLoader size="xs" className="text-current mr-2" /> : <BarChart3 className="h-4 w-4 mr-2" />}
                 Generate {t.charAt(0).toUpperCase() + t.slice(1)} Report
               </Button>
             </div>

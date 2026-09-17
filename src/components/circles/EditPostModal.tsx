@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
 import { BubbleMenu } from '@tiptap/react/menus';
@@ -5,7 +6,7 @@ import StarterKit from '@tiptap/starter-kit';
 import TiptapUnderline from '@tiptap/extension-underline';
 import TiptapLink from '@tiptap/extension-link';
 import TextAlign from '@tiptap/extension-text-align';
-import { X, Bold, Italic, Underline as UnderlineIcon, List, Heading1, Heading2, Link as LinkIcon, Crown, Coins, Image as ImageIcon, Loader2, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
+import { X, Bold, Italic, Underline as UnderlineIcon, List, Heading1, Heading2, Link as LinkIcon, Crown, Coins, Image as ImageIcon, AlignLeft, AlignCenter, AlignRight, AlignJustify } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
@@ -254,7 +255,7 @@ export const EditPostModal: React.FC<EditPostModalProps> = ({ isOpen, onClose, p
             className="flex-[2] h-12 rounded-2xl bg-gradient-to-r from-primary to-primary/80 font-bold shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all"
           >
             {isSubmitting ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <SerkleLoader size="xs" className="text-current" />
             ) : (
               'Save Changes'
             )}

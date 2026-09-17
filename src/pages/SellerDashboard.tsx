@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Package, TrendingUp, DollarSign, Star, Eye, MessageSquare, Settings } from 'lucide-react';
@@ -8,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { useSellerOrders } from '@/hooks/useSellerOrders';
 import { useSellerProfile } from '@/hooks/useSellerProfile';
 import { useUser } from '@/contexts/UserContext';
-import { Loader2 } from 'lucide-react';
+
 import FooterNav from '@/components/FooterNav';
 import { SellerOrdersList } from '@/components/shop/SellerOrdersList';
 import { useNavigation } from '@/contexts/NavigationContext';
@@ -34,7 +35,7 @@ const SellerDashboard: React.FC = () => {
   if (profileLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }

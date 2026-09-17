@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useRef } from 'react';
-import { Heart, Send, BarChart3, Repeat2, Loader2, ChevronUp } from 'lucide-react';
+import { Heart, Send, BarChart3, Repeat2, ChevronUp } from 'lucide-react';
 import EmojiPicker from '@/components/EmojiPicker';
 import { StoryMention, PauseReason } from '@/types/storyTypes';
 
@@ -144,7 +145,7 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
               aria-label="Reshare to your story"
             >
               {isResharing ? (
-                <Loader2 className="size-5 text-white animate-spin" />
+                <SerkleLoader size="xs" className="text-white" />
               ) : (
                 <Repeat2 className="size-5 text-white" />
               )}

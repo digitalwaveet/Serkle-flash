@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { X, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { InlineVideoLoader } from '@/components/ui/VideoLoader';
 import { supabase } from '@/integrations/supabase/client';
@@ -141,6 +142,7 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       <div className="px-4 pb-4 safe-bottom">
         {uploading && (
           <div className="mb-3">
+            <div className="flex justify-center mb-3"><SerkleLoader size="sm" dark label="Uploading attachments" /></div>
             <div className="h-1 bg-card/20 rounded-full overflow-hidden">
               <div
                 className="h-full bg-primary rounded-full transition-all duration-300"

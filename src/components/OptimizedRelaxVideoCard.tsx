@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { getAutoplaySetting } from '@/hooks/useAutoplaySettings';
 import { Heart, MessageCircle, Share, Bookmark, Volume2, VolumeX, Plus, Check } from 'lucide-react';
@@ -297,16 +298,11 @@ export const OptimizedRelaxVideoCard = memo<OptimizedRelaxVideoCardProps>(({
         <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/20 to-black/40 flex items-center justify-center">
           <div className="relative">
             {/* Animated background rings */}
-            <div className="absolute inset-0 w-20 h-20 bg-card/10 rounded-full animate-pulse" />
-            <div className="absolute inset-0 w-24 h-24 bg-card/5 rounded-full animate-ping" style={{ animationDelay: '0.5s' }} />
             
             {/* Main control */}
             <div className="relative w-16 h-16 bg-card/95 backdrop-blur-sm rounded-full flex items-center justify-center shadow-2xl border border-white/30">
               {isBuffering ? (
-                <div className="relative">
-                  <div className="w-6 h-6 border-2 border-border border-t-gray-800 rounded-full animate-spin" />
-                  <div className="absolute inset-0 w-6 h-6 border-2 border-transparent border-t-primary rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
-                </div>
+                <SerkleLoader size="sm" label="Buffering video" />
               ) : (
                 <div className="w-0 h-0 border-l-[16px] border-l-gray-800 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent ml-1" />
               )}

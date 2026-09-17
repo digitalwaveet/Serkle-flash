@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/Header';
@@ -10,7 +11,7 @@ import { NotificationPreferencesModal } from '../components/safe/NotificationPre
 import { ErrorBoundary } from '../components/safe/ErrorBoundary';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Users, Bell, Loader2 } from 'lucide-react';
+import { Users, Bell } from 'lucide-react';
 import { type TabKey } from '@/hooks/useAppNav';
 
 // Lazy load the nearby view for better initial load performance
@@ -83,7 +84,7 @@ const Safe: React.FC<SafeProps> = ({
           <ErrorBoundary fallbackMessage="Failed to load nearby alerts">
             <Suspense fallback={
               <div className="flex items-center justify-center p-8">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <SerkleLoader size="md" className="text-primary" />
               </div>
             }>
               <SOSNearbyView />

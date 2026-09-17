@@ -1,10 +1,11 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useRef } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MapPin, Navigation, Users, Clock, Target, Heart, Shield, Flame, Car, Tornado, AlertTriangle, MessageCircle, X, Loader2 } from 'lucide-react';
+import { MapPin, Navigation, Users, Clock, Target, Heart, Shield, Flame, Car, Tornado, AlertTriangle, MessageCircle, X } from 'lucide-react';
 import { useSOSAlerts } from '@/hooks/useSOSAlerts';
 import { useSOSHelpers } from '@/hooks/useSOSHelpers';
 import { useHelperProfile } from '@/hooks/useHelperProfile';
@@ -443,7 +444,7 @@ export const SOSMapInteractive: React.FC<SOSMapInteractiveProps> = ({ userLat, u
         {/* Loading Skeleton */}
         {(!isMapLoaded || isTokenLoading) && (
           <div className="absolute inset-0 bg-muted z-30 flex flex-col items-center justify-center">
-            <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+            <SerkleLoader size="md" className="text-primary mb-4" />
             <p className="text-sm text-muted-foreground">Loading map...</p>
           </div>
         )}
@@ -560,7 +561,7 @@ export const SOSMapInteractive: React.FC<SOSMapInteractiveProps> = ({ userLat, u
                       disabled={respondToAlert.isPending}
                     >
                       {respondToAlert.isPending ? (
-                        <div className="h-3 w-3 sm:h-4 sm:w-4 mr-1 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <SerkleLoader size="xs" className="text-white mr-1" />
                       ) : (
                         <Users className="h-3 w-3 sm:h-4 sm:w-4 mr-1" />
                       )}

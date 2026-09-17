@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
@@ -237,7 +238,7 @@ export default function AdminRoles() {
             <CardContent className="p-0">
               {loading ? (
                 <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                  <SerkleLoader size="md" className="text-current" />
                 </div>
               ) : (
                 <Table>
@@ -321,7 +322,7 @@ export default function AdminRoles() {
             <CardContent className="p-0">
               {auditLoading ? (
                 <div className="flex justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                  <SerkleLoader size="md" className="text-current" />
                 </div>
               ) : (
                 <Table>

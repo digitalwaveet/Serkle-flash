@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect, ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useUser } from '@/contexts/UserContext';
@@ -56,7 +57,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
-          <div className="animate-spin rounded-full h-10 w-10 border-2 border-primary border-t-transparent" />
+          <SerkleLoader size="md" className="text-current" />
           <p className="text-sm text-muted-foreground">Verifying access...</p>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, X } from 'lucide-react';
@@ -11,7 +12,6 @@ import FooterNav from '@/components/FooterNav';
 import { useCircles, useMyCircles, useOwnedCircles, useSearchCircles, Circle } from '@/hooks/useCircles';
 import { useCircleMutations } from '@/hooks/useCircleMutations';
 import { useUser } from '@/contexts/UserContext';
-import { Skeleton } from '@/components/ui/skeleton';
 import { CIRCLE_TYPES, CIRCLE_CATEGORIES, displayCategory } from '@/lib/circleTypes';
 import { type TabKey } from '@/hooks/useAppNav';
 
@@ -247,11 +247,7 @@ const Circles: React.FC<CirclesProps> = ({ activeTab, onTabSelect, onOpenCreate 
               </p>
               <div className="grid gap-4">
                 {isBrowseLoading ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="space-y-3">
-                      <Skeleton className="h-48 w-full rounded-lg" />
-                    </div>
-                  ))
+                  <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading circles" showText /></div>
                 ) : filteredAllCircles.length === 0 ? (
                   <div className="text-center py-12 space-y-3">
                     <p className="text-muted-foreground">
@@ -284,11 +280,7 @@ const Circles: React.FC<CirclesProps> = ({ activeTab, onTabSelect, onOpenCreate 
               <p className="text-xs text-muted-foreground mb-3">Circles you've joined or subscribed to</p>
               <div className="grid gap-4">
                 {isLoadingMy ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="space-y-3">
-                      <Skeleton className="h-48 w-full rounded-lg" />
-                    </div>
-                  ))
+                  <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading circles" showText /></div>
                 ) : filteredMyCircles.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     {hasQueryOrFilters ? 'No circles found matching your search' : "You haven't joined any circles yet"}
@@ -312,11 +304,7 @@ const Circles: React.FC<CirclesProps> = ({ activeTab, onTabSelect, onOpenCreate 
               <p className="text-xs text-muted-foreground mb-3">Circles you created or manage</p>
               <div className="grid gap-4">
                 {isLoadingOwned ? (
-                  Array.from({ length: 3 }).map((_, i) => (
-                    <div key={i} className="space-y-3">
-                      <Skeleton className="h-48 w-full rounded-lg" />
-                    </div>
-                  ))
+                  <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading circles" showText /></div>
                 ) : filteredOwnedCircles.length === 0 ? (
                   <div className="text-center py-12 text-muted-foreground">
                     {hasQueryOrFilters ? 'No circles found matching your search' : "You haven't created any circles yet"}

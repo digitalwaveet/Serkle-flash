@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Building2, ChevronDown, Loader2, ArrowDownCircle } from 'lucide-react';
+import { Building2, ChevronDown, ArrowDownCircle } from 'lucide-react';
 import { ChapaBank } from '@/hooks/useCoinWallet';
 import { cn } from '@/lib/utils';
 
@@ -196,7 +197,7 @@ export const WalletWithdrawTab: React.FC<WalletWithdrawTabProps> = ({
         size="lg"
       >
         {requestWithdrawal.isPending ? (
-          <><Loader2 className="w-4 h-4 animate-spin" /> Processing…</>
+          <><SerkleLoader size="xs" className="text-current" /> Processing…</>
         ) : (
           <><ArrowDownCircle className="w-4 h-4" /> Request Withdrawal</>
         )}

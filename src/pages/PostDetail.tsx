@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageCircle, Share2, MoreHorizontal, BadgeCheck, Send, Loader2, MapPin, Mic, Pencil, Trash2, Bookmark, Flag, BookmarkCheck, Image, Lock, Crown, Coins } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -178,7 +179,7 @@ const PostDetail: React.FC = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <p className="text-muted-foreground">Loading...</p>
+          <SerkleLoader label="Loading post" showText />
         </div>
       </div>
     );

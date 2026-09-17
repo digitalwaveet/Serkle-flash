@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, Lock, Eye, MessageCircle, LogOut, Shield, Mail, Phone, KeyRound, BadgeCheck, ChevronRight, Loader2, HardDrive, Trash2, Moon, Video, Download, Smartphone, Bell, RefreshCw, Send } from 'lucide-react';
+import { ArrowLeft, Lock, Eye, MessageCircle, LogOut, Shield, Mail, Phone, KeyRound, BadgeCheck, ChevronRight, HardDrive, Trash2, Moon, Video, Download, Smartphone, Bell, RefreshCw, Send } from 'lucide-react';
 import { useDarkMode } from '@/hooks/useDarkMode';
 import { useAutoplaySettings } from '@/hooks/useAutoplaySettings';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
@@ -630,7 +631,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                       disabled={clearingCache}
                     >
                       {clearingCache ? (
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        <SerkleLoader size="xs" className="text-current mr-2" />
                       ) : (
                         <Trash2 className="h-4 w-4 mr-2" />
                       )}
@@ -677,7 +678,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         disabled={isPushLoading || permission === 'denied'}
                         className="w-full h-12 text-base"
                       >
-                        {isPushLoading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <Bell className="h-5 w-5 mr-2" />}
+                        {isPushLoading ? <SerkleLoader size="xs" className="text-current mr-2" /> : <Bell className="h-5 w-5 mr-2" />}
                         Enable Notifications
                       </Button>
                     )}
@@ -715,7 +716,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                         disabled={isPushLoading}
                         className="mt-2"
                       >
-                        {isPushLoading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
+                        {isPushLoading ? <SerkleLoader size="xs" className="text-current mr-2" /> : <RefreshCw className="h-4 w-4 mr-2" />}
                         Force Re-enable
                       </Button>
                     </div>
@@ -781,7 +782,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                             className="text-xs"
                           >
                             {sendingVerification ? (
-                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                              <SerkleLoader size="xs" className="text-current mr-1" />
                             ) : null}
                             Verify
                           </Button>
@@ -854,7 +855,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 className="w-full"
               >
                 {passwordStep === 'sending' ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <SerkleLoader size="xs" className="text-current mr-2" />
                 ) : (
                   <Mail className="h-4 w-4 mr-2" />
                 )}
@@ -882,7 +883,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   disabled={passwordStep === 'verifying' || otpCode.length < 6}
                   className="w-full"
                 >
-                  {passwordStep === 'verifying' && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {passwordStep === 'verifying' && <SerkleLoader size="xs" className="text-current mr-2" />}
                   {passwordStep === 'verifying' ? 'Verifying...' : 'Verify Code'}
                 </Button>
                 <button
@@ -923,7 +924,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                   disabled={passwordStep === 'saving'}
                   className="w-full"
                 >
-                  {passwordStep === 'saving' && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {passwordStep === 'saving' && <SerkleLoader size="xs" className="text-current mr-2" />}
                   {passwordStep === 'saving' ? 'Saving...' : 'Update Password'}
                 </Button>
               </div>

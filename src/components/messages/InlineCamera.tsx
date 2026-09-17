@@ -1,6 +1,7 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { X, SwitchCamera, Camera, Loader2, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, SwitchCamera, Camera, ZoomIn, ZoomOut } from 'lucide-react';
 
 interface InlineCameraProps {
   onCapture: (blob: Blob) => void;
@@ -178,7 +179,7 @@ const InlineCamera: React.FC<InlineCameraProps> = ({ onCapture, onClose }) => {
             />
             {!isReady && (
               <div className="absolute inset-0 flex items-center justify-center bg-black">
-                <Loader2 className="h-8 w-8 animate-spin text-white/50" />
+                <SerkleLoader size="md" className="text-white/50" />
               </div>
             )}
           </>

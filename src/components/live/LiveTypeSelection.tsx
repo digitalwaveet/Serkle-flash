@@ -1,10 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React from 'react';
 import { Globe, Users, ArrowRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/contexts/UserContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface LiveTypeSelectionProps {
   onTypeSelect: (type: 'random' | 'circle', circleId?: string, circleName?: string) => void;
@@ -74,7 +74,7 @@ const LiveTypeSelection: React.FC<LiveTypeSelectionProps> = ({ onTypeSelect }) =
               <div className="flex-1">
                 <h4 className="font-medium text-foreground text-sm">Random Live</h4>
                 {profileLoading ? (
-                  <Skeleton className="h-3 w-32 mt-0.5" />
+                  <SerkleLoader size="xs" />
                 ) : profile ? (
                   <div className="flex items-center gap-1.5 mt-0.5">
                     <Avatar className="w-3.5 h-3.5">
@@ -114,11 +114,7 @@ const LiveTypeSelection: React.FC<LiveTypeSelectionProps> = ({ onTypeSelect }) =
           
           <div className="space-y-1.5 max-h-40 overflow-y-auto">
             {circlesLoading ? (
-              <div className="space-y-1.5">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-12 w-full" />
-                ))}
-              </div>
+              <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading content" showText /></div>
             ) : userCircles && userCircles.length > 0 ? (
               userCircles.map((circle: any) => (
                 <button

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -5,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useAddressMutations, ShippingAddress } from '@/hooks/useShippingAddresses';
-import { Loader2 } from 'lucide-react';
+
 
 interface AddressFormModalProps {
   isOpen: boolean;
@@ -191,7 +192,7 @@ export const AddressFormModal: React.FC<AddressFormModalProps> = ({
             >
               {isLoading ? (
                 <>
-                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  <SerkleLoader size="xs" className="text-current mr-2" />
                   Saving...
                 </>
               ) : editingAddress ? (

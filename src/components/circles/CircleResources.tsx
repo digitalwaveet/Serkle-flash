@@ -1,10 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Download, FileText, Video, Image, Lock, Star, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeSubscription } from '@/hooks/useRealtimeSubscription';
@@ -89,10 +89,7 @@ const CircleResources: React.FC<CircleResourcesProps> = ({ circle, isOwner }) =>
 
   if (isLoading) {
     return (
-      <div className="px-4 py-6 space-y-4">
-        <Skeleton className="h-8 w-32" />
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-32 w-full rounded-lg" />)}
-      </div>
+      <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading circles" showText /></div>
     );
   }
 

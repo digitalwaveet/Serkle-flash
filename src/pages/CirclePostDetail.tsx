@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, MessageCircle, Share2, Bookmark, Crown, Lock, Coins, Send, Check } from 'lucide-react';
@@ -226,7 +227,7 @@ const CirclePostDetail: React.FC = () => {
   if (isLoading || (isPaidPremium && isSubscriptionLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        <SerkleLoader size="md" className="text-current" />
       </div>
     );
   }
@@ -518,7 +519,7 @@ const CirclePostDetail: React.FC = () => {
                   >
                     {isUnlocking ? (
                       <span className="flex items-center gap-2">
-                        <span className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent" />
+                        <SerkleLoader size="xs" className="text-primary-foreground" />
                         Unlocking…
                       </span>
                     ) : (

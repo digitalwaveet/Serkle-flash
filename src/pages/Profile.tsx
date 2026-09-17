@@ -1,10 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import PublicUserProfile from '@/components/PublicUserProfile';
 import { supabase } from '@/integrations/supabase/client';
-import { Skeleton } from '@/components/ui/skeleton';
 
 const Profile: React.FC = () => {
   const { username } = useParams<{ username: string }>();
@@ -80,12 +80,7 @@ const Profile: React.FC = () => {
           </div>
         </div>
 
-        <div className="space-y-4 p-4">
-          <Skeleton className="h-48 w-full" />
-          <Skeleton className="h-20 w-20 rounded-full" />
-          <Skeleton className="h-4 w-3/4" />
-          <Skeleton className="h-4 w-1/2" />
-        </div>
+        <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading profile" showText /></div>
       </div>
     );
   }

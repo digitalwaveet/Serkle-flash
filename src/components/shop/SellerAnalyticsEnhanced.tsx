@@ -1,7 +1,8 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSellerProfile } from "@/hooks/useSellerProfile";
 import { useSellerOrders } from "@/hooks/useSellerOrders";
-import { Loader2, TrendingUp, Package, Star, DollarSign } from "lucide-react";
+import { TrendingUp, Package, Star, DollarSign } from "lucide-react";
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 interface SellerAnalyticsEnhancedProps {
@@ -15,7 +16,7 @@ export const SellerAnalyticsEnhanced = ({ sellerId }: SellerAnalyticsEnhancedPro
   if (profileLoading || ordersLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }

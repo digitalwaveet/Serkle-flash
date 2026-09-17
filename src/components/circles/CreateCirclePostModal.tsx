@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -296,7 +297,7 @@ export const CreateCirclePostModal: React.FC<CreateCirclePostModalProps> = ({
             >
               {isSubmitting ? (
                 <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 border-2 border-primary-foreground/30 border-t-primary-foreground rounded-full animate-spin" />
+                  <SerkleLoader size="xs" className="text-primary-foreground" />
                   <span>Creating Post...</span>
                 </div>
               ) : 'Publish Post'}

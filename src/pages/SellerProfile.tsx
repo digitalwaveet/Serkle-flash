@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Star, MessageCircle, Shield, MapPin, Calendar, TrendingUp, Package, DollarSign, Users, Phone, Mail, Settings } from 'lucide-react';
@@ -11,7 +12,6 @@ import FooterNav from '@/components/FooterNav';
 import { useSellerProfile } from '@/hooks/useSellerProfile';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useUser } from '@/contexts/UserContext';
-import { Skeleton } from '@/components/ui/skeleton';
 import { SellerOnboardingModal } from '@/components/shop/SellerOnboardingModal';
 
 // Mock seller data that matches the shop items
@@ -155,25 +155,7 @@ const SellerProfile: React.FC = () => {
             <div className="w-10" />
           </div>
         </div>
-        <div className="p-4 space-y-4">
-          <div className="flex items-start gap-4">
-            <Skeleton className="w-20 h-20 rounded-full" />
-            <div className="flex-1 space-y-2">
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-4 w-48" />
-              <Skeleton className="h-4 w-24" />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            {[1, 2, 3, 4].map((i) => (
-              <Card key={i}>
-                <CardContent className="p-3">
-                  <Skeleton className="h-16 w-full" />
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
+        <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading profile" showText /></div>
       </div>
     );
   }

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Heart, Share2, Star, MessageCircle, MapPin, Shield, Truck, RotateCcw, Flag, Plus, Minus, Send, Upload, X } from 'lucide-react';
@@ -16,7 +17,7 @@ import { useShopItems } from '@/hooks/useShopItems';
 import { useProductReviews } from '@/hooks/useProductReviews';
 import { useReviewMutations } from '@/hooks/useReviewMutations';
 import { useShopMessageMutations } from '@/hooks/useShopMessages';
-import { Loader2 } from 'lucide-react';
+
 import { supabase } from '@/integrations/supabase/client';
 import { CustomFilePicker, useFileManager } from '@/components/CustomFilePicker';
 
@@ -51,7 +52,7 @@ const ProductDetail: React.FC = () => {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }
@@ -338,7 +339,7 @@ const ProductDetail: React.FC = () => {
                 disabled={createConversation.isPending}
               >
                 {createConversation.isPending ? (
-                  <Loader2 className="w-3 h-3 animate-spin" />
+                  <SerkleLoader size="xs" className="text-current" />
                 ) : (
                   <>
                     <MessageCircle className="w-3 h-3 sm:mr-1" />
@@ -456,7 +457,7 @@ const ProductDetail: React.FC = () => {
             <div className="space-y-4">
               {reviewsLoading ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <SerkleLoader size="sm" className="text-primary" />
                 </div>
               ) : reviews.length === 0 ? (
                 <Card>
@@ -614,7 +615,7 @@ const ProductDetail: React.FC = () => {
                     >
                       {uploadingImages ? (
                         <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          <SerkleLoader size="xs" className="text-current mr-2" />
                           Uploading...
                         </>
                       ) : (

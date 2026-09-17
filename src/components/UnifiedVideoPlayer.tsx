@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useRef, useEffect, useState, useCallback, memo } from 'react';
 import { Video } from '@/hooks/useVideoFeed';
 import { Heart, MessageCircle, Share, Bookmark, Volume2, VolumeX, Plus, Check } from 'lucide-react';
@@ -161,19 +162,7 @@ export const UnifiedVideoPlayer = memo<UnifiedVideoPlayerProps>(({
       {/* Enhanced loading indicator */}
       {isLoading && isActive && (
         <div className="absolute inset-0 flex items-center justify-center bg-gradient-radial from-black/30 via-black/20 to-transparent">
-          <div className="relative">
-            {/* Outer pulsing rings */}
-            <div className="absolute inset-0 w-16 h-16 border-2 border-white/20 rounded-full animate-pulse" />
-            <div className="absolute inset-0 w-20 h-20 border border-white/10 rounded-full animate-ping" />
-            
-            {/* Main spinner */}
-            <div className="w-12 h-12 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-            
-            {/* Inner elements */}
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-3 h-3 bg-card rounded-full animate-pulse" />
-            </div>
-          </div>
+          <SerkleLoader dark label="Buffering video" />
         </div>
       )}
 

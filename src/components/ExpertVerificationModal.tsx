@@ -1,10 +1,11 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 ﻿import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { Award, Clock, CheckCircle, XCircle, Loader2, Upload, FileText, ChevronRight, ChevronLeft, AlertCircle, Search } from "lucide-react";
+import { Award, Clock, CheckCircle, XCircle, Upload, FileText, ChevronRight, ChevronLeft, AlertCircle, Search } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -212,7 +213,7 @@ const ExpertVerificationModal: React.FC<ExpertVerificationModalProps> = ({ open,
         </DialogHeader>
 
         {loading ? (
-          <div className="flex justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-muted-foreground" /></div>
+          <div className="flex justify-center py-12"><SerkleLoader size="md" className="text-muted-foreground" /></div>
         ) : step === 4 && existingRequest ? (
           <div className="space-y-6">
             <div className="p-6 rounded-xl bg-muted/30 border text-center space-y-4">
@@ -332,7 +333,7 @@ const ExpertVerificationModal: React.FC<ExpertVerificationModalProps> = ({ open,
                   <Input type="file" onChange={handleFileUpload} className="hidden" id="credential-upload" disabled={uploadingFile} />
                   <label htmlFor="credential-upload" className="cursor-pointer flex flex-col items-center">
                     {uploadingFile ? (
-                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground mb-2" />
+                      <SerkleLoader size="md" className="text-muted-foreground mb-2" />
                     ) : (
                       <Upload className="h-8 w-8 text-muted-foreground mb-2" />
                     )}
@@ -380,7 +381,7 @@ const ExpertVerificationModal: React.FC<ExpertVerificationModalProps> = ({ open,
                   </Button>
                 ) : (
                   <Button onClick={handleSubmit} disabled={submitting}>
-                    {submitting && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                    {submitting && <SerkleLoader size="xs" className="text-current mr-2" />}
                     Submit Application
                   </Button>
                 )}

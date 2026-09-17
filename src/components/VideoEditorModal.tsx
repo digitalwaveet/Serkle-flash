@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { X, Play, Pause, Check, Scissors, ImageIcon, Loader2, ChevronLeft } from 'lucide-react';
+import { X, Play, Pause, Check, Scissors, ImageIcon, ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
@@ -316,7 +317,7 @@ const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
             <div className="pt-3 space-y-3">
               {loadingFilmstrip ? (
                 <div className="flex items-center justify-center py-6">
-                  <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                  <SerkleLoader size="sm" className="text-primary" />
                   <span className="ml-2 text-white/50 text-sm">Generating frames…</span>
                 </div>
               ) : (
@@ -384,7 +385,7 @@ const VideoEditorModal: React.FC<VideoEditorModalProps> = ({
                         disabled={capturingFrame}
                         className="shrink-0 border-white/20 text-white hover:bg-white/10 text-xs h-8"
                       >
-                        {capturingFrame ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Capture'}
+                        {capturingFrame ? <SerkleLoader size="xs" className="text-current" /> : 'Capture'}
                       </Button>
                     </div>
                   </div>

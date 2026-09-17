@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -273,7 +274,7 @@ const CircleSettingsModal: React.FC<CircleSettingsModalProps> = ({ open, onOpenC
             </h3>
 
             {loadingSubscribers ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
+              <SerkleLoader size="sm" label="Loading subscribers" showText />
             ) : subscribers.length === 0 ? (
               <p className="text-sm text-muted-foreground">No active subscribers yet</p>
             ) : (

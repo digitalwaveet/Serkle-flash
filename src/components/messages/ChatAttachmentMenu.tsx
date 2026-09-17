@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useRef } from 'react';
-import { Paperclip, Camera, Image, Video, Mic, MapPin, X, Loader2 } from 'lucide-react';
+import { Paperclip, Camera, Image, Video, Mic, MapPin, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { CustomFilePicker, useFileManager } from '@/components/CustomFilePicker';
@@ -212,7 +213,7 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
   if (uploading) {
     return (
       <div className="p-2">
-        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+        <SerkleLoader size="xs" className="text-primary" />
       </div>
     );
   }

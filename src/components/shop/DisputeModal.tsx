@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -5,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDisputes } from "@/hooks/useDisputes";
-import { Loader2 } from "lucide-react";
+
 
 interface DisputeModalProps {
   open: boolean;
@@ -85,7 +86,7 @@ export const DisputeModal = ({ open, onOpenChange, orderId, sellerId }: DisputeM
               className="flex-1"
             >
               {createDispute.isPending && (
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                <SerkleLoader size="xs" className="text-current mr-2" />
               )}
               Submit Dispute
             </Button>

@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Check, Trash2, Heart, MessageCircle, UserPlus, Video, CheckCheck, AtSign, Users, HelpCircle, Bell, BellOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -299,7 +300,7 @@ const Notifications = () => {
   if (isLoading && !dbNotifications.length) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+        <SerkleLoader size="md" className="text-current" />
       </div>
     );
   }

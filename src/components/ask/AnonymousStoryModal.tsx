@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -187,7 +188,7 @@ export const AnonymousStoryModal: React.FC<AnonymousStoryModalProps> = ({
               >
                 {isSubmitting ? (
                   <>
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+                    <SerkleLoader size="xs" className="text-white mr-2" />
                     Sharing...
                   </>
                 ) : (

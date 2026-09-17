@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useRef } from 'react';
 import { Mic, MicOff, Camera, CameraOff, RotateCcw, Sparkles, MapPin, Users, Eye, MoreVertical, PhoneOff, Send } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -225,7 +226,7 @@ const WebRTCLiveSimulation: React.FC<WebRTCLiveSimulationProps> = ({ config, onE
       {!isConnected && (
         <div className="absolute inset-0 bg-black/80 flex items-center justify-center">
           <div className="text-white text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4" />
+            <SerkleLoader size="md" className="text-white mx-auto mb-4" />
             <p className="text-lg">Starting live stream...</p>
             <p className="text-sm text-white/60 mt-2">Using WebRTC (no API key required)</p>
           </div>

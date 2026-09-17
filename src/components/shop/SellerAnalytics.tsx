@@ -1,9 +1,10 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useSellerProfile } from '@/hooks/useSellerProfile';
 import { useSellerOrders } from '@/hooks/useSellerOrders';
 import { TrendingUp, DollarSign, ShoppingBag, Star, Package, Clock } from 'lucide-react';
-import { Loader2 } from 'lucide-react';
+
 
 interface SellerAnalyticsProps {
   sellerId: string;
@@ -16,7 +17,7 @@ export const SellerAnalytics: React.FC<SellerAnalyticsProps> = ({ sellerId }) =>
   if (profileLoading || ordersLoading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -132,7 +133,7 @@ const UploadResourceModal: React.FC<UploadResourceModalProps> = ({ open, onOpenC
           </div>
           <Button type="submit" className="w-full" disabled={uploading}>
             <Upload className="h-4 w-4 mr-2" />
-            {uploading ? 'Uploading...' : 'Upload Resource'}
+            {uploading ? <><SerkleLoader size="xs" className="text-current" label="Uploading resource" /> Uploading...</> : 'Upload Resource'}
           </Button>
         </form>
       </DialogContent>

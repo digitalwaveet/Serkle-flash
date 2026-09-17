@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminAudit } from '@/hooks/useAdminAudit';
@@ -9,10 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
-import {
-  AlertTriangle, Shield, Clock, MapPin, Users, CheckCircle,
-  XCircle, Eye, Search, RefreshCw, Star, TrendingUp,
-} from 'lucide-react';
+import { AlertTriangle, Shield, Clock, MapPin, Users, CheckCircle, XCircle, Eye, Search, RefreshCw, Star, TrendingUp } from 'lucide-react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -250,7 +248,7 @@ export default function AdminSafetyOperations() {
           <p className="text-muted-foreground">Monitor emergencies, manage helpers, and review response analytics</p>
         </div>
         <Button variant="outline" size="sm" onClick={fetchData} disabled={loading}>
-          <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+          {loading ? <SerkleLoader size="xs" className="mr-2 text-current" label="Refreshing" /> : <RefreshCw className="h-4 w-4 mr-2" />}
           Refresh
         </Button>
       </div>
@@ -330,7 +328,7 @@ export default function AdminSafetyOperations() {
             <CardContent>
               {loading ? (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                  <SerkleLoader size="md" className="text-current" />
                 </div>
               ) : filteredAlerts.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">No incidents found</p>
@@ -408,7 +406,7 @@ export default function AdminSafetyOperations() {
             <CardContent>
               {loading ? (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                  <SerkleLoader size="md" className="text-current" />
                 </div>
               ) : filteredHelpers.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">No helpers found</p>
@@ -483,7 +481,7 @@ export default function AdminSafetyOperations() {
             <CardContent>
               {loading ? (
                 <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                  <SerkleLoader size="md" className="text-current" />
                 </div>
               ) : recentResponses.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">No responses found</p>

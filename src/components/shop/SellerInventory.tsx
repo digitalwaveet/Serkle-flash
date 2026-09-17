@@ -1,10 +1,11 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useShopItems } from '@/hooks/useShopItems';
 import { useNavigate } from 'react-router-dom';
-import { Edit, Trash2, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Edit, Trash2, Eye, EyeOff } from 'lucide-react';
 import { useShopItemMutations } from '@/hooks/useShopItemMutations';
 import { toast } from 'sonner';
 
@@ -30,7 +31,7 @@ export const SellerInventory: React.FC<SellerInventoryProps> = ({ sellerId }) =>
   if (isLoading) {
     return (
       <div className="flex justify-center py-12">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }
@@ -115,7 +116,7 @@ export const SellerInventory: React.FC<SellerInventoryProps> = ({ sellerId }) =>
                 disabled={deleteItem.isPending}
               >
                 {deleteItem.isPending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <SerkleLoader size="xs" className="text-current" />
                 ) : (
                   <Trash2 className="w-4 h-4" />
                 )}

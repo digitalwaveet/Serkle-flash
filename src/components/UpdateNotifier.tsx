@@ -99,7 +99,7 @@ const UpdateNotifier: React.FC = () => {
           onClick={handleUpdate}
           className="flex-1 bg-white text-black hover:bg-zinc-200 rounded-2xl h-11 font-semibold transition-all active:scale-95"
         >
-          <RefreshCw className="mr-2 h-4 w-4 animate-spin-slow" />
+          <RefreshCw className="mr-2 h-4 w-4" />
           Update Now
         </Button>
       </div>

@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Mail, Loader2, BadgeCheck } from 'lucide-react';
+import { ArrowLeft, Mail, BadgeCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -174,7 +175,7 @@ const EmailAddress: React.FC = () => {
                 className="w-full h-12"
               >
                 {step === 'sending' ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <SerkleLoader size="xs" className="text-current mr-2" />
                 ) : (
                   <Mail className="h-4 w-4 mr-2" />
                 )}
@@ -216,7 +217,7 @@ const EmailAddress: React.FC = () => {
                 disabled={step === 'verifying' || otpCode.length < 6}
                 className="w-full h-12"
               >
-                {step === 'verifying' && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                {step === 'verifying' && <SerkleLoader size="xs" className="text-current mr-2" />}
                 {step === 'verifying' ? 'Verifying...' : 'Verify Email'}
               </Button>
               <button

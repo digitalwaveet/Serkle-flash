@@ -1,10 +1,11 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+
 
 interface EventAttendeesModalProps {
   isOpen: boolean;
@@ -53,7 +54,7 @@ const EventAttendeesModal: React.FC<EventAttendeesModalProps> = ({
 
         {isLoading ? (
           <div className="flex items-center justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin" />
+            <SerkleLoader size="md" className="text-current" />
           </div>
         ) : attendees && attendees.length > 0 ? (
           <div className="space-y-3">

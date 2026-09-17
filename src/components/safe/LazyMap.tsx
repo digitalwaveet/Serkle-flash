@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { lazy, Suspense } from 'react';
-import { Loader2 } from 'lucide-react';
+
 import { Card } from '@/components/ui/card';
 
 // Lazy load the map component for better performance
@@ -15,7 +16,7 @@ interface LazyMapProps {
 const MapLoadingFallback = () => (
   <Card className="relative h-[400px] sm:h-[500px] flex items-center justify-center bg-muted">
     <div className="flex flex-col items-center gap-3">
-      <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      <SerkleLoader size="md" className="text-primary" />
       <p className="text-sm text-muted-foreground">Loading map...</p>
     </div>
   </Card>

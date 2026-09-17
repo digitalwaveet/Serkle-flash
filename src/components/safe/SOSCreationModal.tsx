@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -471,7 +472,7 @@ export const SOSCreationModal: React.FC<SOSCreationModalProps> = ({
                 {isUploading && (
                   <div className="space-y-2">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-muted-foreground">Compressing and uploading...</span>
+                      <span className="text-muted-foreground flex items-center gap-2"><SerkleLoader size="xs" />Compressing and uploading...</span>
                       <span className="text-muted-foreground">{Math.round(uploadProgress)}%</span>
                     </div>
                     <Progress value={uploadProgress} className="h-2" />
@@ -568,7 +569,7 @@ export const SOSCreationModal: React.FC<SOSCreationModalProps> = ({
                 
                 {/* Photo Upload Preview handled by CustomFilePicker */}
                 {isUploading && (
-                  <div className="text-xs text-muted-foreground">Uploading photos...</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2"><SerkleLoader size="xs" />Uploading photos...</div>
                 )}
               </div>
               
@@ -651,7 +652,7 @@ export const SOSCreationModal: React.FC<SOSCreationModalProps> = ({
                 
                 {/* Photo Upload Preview handled by CustomFilePicker */}
                 {isUploading && (
-                  <div className="text-xs text-muted-foreground">Uploading photos...</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2"><SerkleLoader size="xs" />Uploading photos...</div>
                 )}
               </div>
               
@@ -730,7 +731,7 @@ export const SOSCreationModal: React.FC<SOSCreationModalProps> = ({
                 
                 {/* Photo Upload Preview handled by CustomFilePicker */}
                  {isUploading && (
-                  <div className="text-xs text-muted-foreground">Uploading photos...</div>
+                  <div className="text-xs text-muted-foreground flex items-center gap-2"><SerkleLoader size="xs" />Uploading photos...</div>
                 )}
               </div>
               
@@ -829,7 +830,7 @@ export const SOSCreationModal: React.FC<SOSCreationModalProps> = ({
             >
               {createAlert.isPending ? (
                 <div className="flex items-center gap-2">
-                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <SerkleLoader size="xs" className="text-white" />
                   Sending...
                 </div>
               ) : (
@@ -879,7 +880,7 @@ export const SOSCreationModal: React.FC<SOSCreationModalProps> = ({
               >
                 {isSubmitting ? (
                   <>
-                    <div className="h-4 w-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <SerkleLoader size="xs" className="text-white mr-2" />
                     Sending...
                   </>
                 ) : (

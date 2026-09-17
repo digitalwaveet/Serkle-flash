@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Camera, Link as LinkIcon, Trash2, Check, Loader2, AlertCircle } from 'lucide-react';
+import { X, Camera, Link as LinkIcon, Trash2, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import RichBioEditor from '@/components/RichBioEditor';
@@ -225,7 +226,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
       case 'checking':
         return (
           <span className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-            <Loader2 className="h-3 w-3 animate-spin" /> Checking availability...
+            <SerkleLoader size="xs" className="text-current" /> Checking availability...
           </span>
         );
       case 'available':
@@ -340,7 +341,7 @@ const EditProfileModal: React.FC<EditProfileModalProps> = ({ isOpen, onClose }) 
                   }`}
                 />
                 {usernameStatus === 'checking' && (
-                  <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 animate-spin text-muted-foreground" />
+                  <SerkleLoader size="xs" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 )}
                 {usernameStatus === 'available' && (
                   <Check className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-green-500" />

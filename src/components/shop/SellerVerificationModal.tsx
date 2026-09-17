@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useSellerVerification } from "@/hooks/useSellerVerification";
-import { Loader2, Upload, CheckCircle2, AlertCircle } from "lucide-react";
+import { Upload, CheckCircle2, AlertCircle } from "lucide-react";
 import { CustomFilePicker, useFileManager } from "@/components/CustomFilePicker";
 
 interface SellerVerificationModalProps {
@@ -186,7 +187,7 @@ export const SellerVerificationModal = ({
                 disabled={isSubmitting || !description}
                 className="flex-1"
               >
-                {isSubmitting && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                {isSubmitting && <SerkleLoader size="xs" className="text-current mr-2" />}
                 Submit Application
               </Button>
             </div>

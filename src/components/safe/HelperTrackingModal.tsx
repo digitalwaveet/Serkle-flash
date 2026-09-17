@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -6,7 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Phone, MapPin, Star, Clock, Navigation, X, Loader2 } from 'lucide-react';
+import { Phone, MapPin, Star, Clock, Navigation, X } from 'lucide-react';
 import { useMapboxToken } from '@/hooks/useMapboxToken';
 import { useAutoHelperRequest } from '@/hooks/useAutoHelperRequest';
 import { useHelperRequests } from '@/hooks/useHelperRequests';
@@ -239,7 +240,7 @@ export const HelperTrackingModal: React.FC<HelperTrackingModalProps> = ({
           {/* Loading Skeleton */}
           {(!isMapLoaded || isTokenLoading) && (
             <div className="absolute inset-0 bg-muted z-30 flex flex-col items-center justify-center">
-              <Loader2 className="h-12 w-12 animate-spin text-primary mb-4" />
+              <SerkleLoader size="md" className="text-primary mb-4" />
               <p className="text-sm text-muted-foreground">Loading map...</p>
             </div>
           )}
@@ -293,7 +294,7 @@ export const HelperTrackingModal: React.FC<HelperTrackingModalProps> = ({
           {autoRequest.isRequesting && !acceptedHelper && (
             <Card className="absolute bottom-2 left-2 right-2 md:bottom-4 md:left-4 md:right-4 z-10 p-3 md:p-4 shadow-lg bg-blue-50 border-blue-200">
               <div className="flex items-center gap-2 md:gap-3">
-                <Loader2 className="h-5 w-5 md:h-6 md:w-6 text-blue-500 animate-spin flex-shrink-0" />
+                <SerkleLoader size="xs" className="text-blue-500 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-sm md:text-base">Requesting Helper...</h4>
                   <p className="text-xs md:text-sm text-muted-foreground truncate">

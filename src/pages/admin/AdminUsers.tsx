@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -163,13 +164,7 @@ export default function AdminUsers() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell colSpan={5} className="h-14">
-                      <div className="h-4 bg-muted rounded animate-pulse" />
-                    </TableCell>
-                  </TableRow>
-                ))
+                <TableRow><TableCell colSpan={5} className="h-32 text-center"><SerkleLoader label="Loading records" showText /></TableCell></TableRow>
               ) : users.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={5} className="text-center text-muted-foreground py-8">

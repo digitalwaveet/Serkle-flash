@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState } from "react";
 import Header from "@/components/Header";
 import FooterNav from "@/components/FooterNav";
@@ -6,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Loader2, AlertTriangle, CheckCircle2, Clock } from "lucide-react";
+import { AlertTriangle, CheckCircle2, Clock } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Disputes = () => {
@@ -53,7 +54,7 @@ const Disputes = () => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <SerkleLoader size="md" className="text-primary" />
       </div>
     );
   }
@@ -147,7 +148,7 @@ const Disputes = () => {
                               className="flex-1"
                             >
                               {updateDispute.isPending && (
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                <SerkleLoader size="xs" className="text-current mr-2" />
                               )}
                               Resolve
                             </Button>

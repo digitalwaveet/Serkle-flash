@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -223,7 +224,7 @@ export default function AdminWebhooks() {
 
       {loading ? (
         <div className="space-y-3">
-          {[1, 2].map(i => <Card key={i} className="animate-pulse"><CardContent className="p-6 h-20" /></Card>)}
+          <div className="col-span-full flex min-h-24 w-full items-center justify-center py-8"><SerkleLoader size="md" label="Loading data" /></div>
         </div>
       ) : endpoints.length === 0 ? (
         <Card>

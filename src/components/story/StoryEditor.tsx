@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { X, Type, Sticker, Sparkles, PenTool, Trash2, Eye, ChevronRight, Image as ImageIcon, Undo2 } from 'lucide-react';
 import { StoryState, StoryElement, DrawingPath, EditorExtraData } from '@/types/storyTypes';
@@ -627,7 +628,7 @@ export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElemen
         >
           {isSharing ? (
             <>
-              <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+              <SerkleLoader size="xs" className="text-current" />
               <span>Sharing...</span>
             </>
           ) : (

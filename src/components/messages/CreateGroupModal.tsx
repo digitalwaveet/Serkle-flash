@@ -1,5 +1,6 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
-import { X, Users, Loader2 } from 'lucide-react';
+import { X, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -91,7 +92,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             disabled={isCreating || !groupName.trim() || selectedFriends.length === 0}
             className="rounded-full px-4 h-8 text-xs"
           >
-            {isCreating ? <Loader2 className="h-3 w-3 animate-spin" /> : 'Create'}
+            {isCreating ? <SerkleLoader size="xs" className="text-current" /> : 'Create'}
           </Button>
         </div>
 

@@ -1,7 +1,7 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 
@@ -80,17 +80,7 @@ const FollowListModal: React.FC<FollowListModalProps> = ({
         </DialogHeader>
         <div className="flex-1 overflow-y-auto -mx-2 px-2">
           {isLoading ? (
-            <div className="space-y-3 py-2">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="h-10 w-10 rounded-full" />
-                  <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-3.5 w-32" />
-                    <Skeleton className="h-3 w-24" />
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="min-h-48 w-full flex items-center justify-center py-8"><SerkleLoader label="Loading content" showText /></div>
           ) : users.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8">
               {type === 'followers' ? 'No followers yet' : 'Not following anyone yet'}

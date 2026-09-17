@@ -1,3 +1,4 @@
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import * as VisuallyHidden from '@radix-ui/react-visually-hidden';
@@ -5,11 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import {
-  Pencil, UserPlus, Link2, Check, X, Loader2, Users, Crown,
-  Shield, ShieldOff, LogOut, UserMinus, BellOff, Bell, Camera,
-  Image, BarChart3, Plus, QrCode, Info, MessageSquare
-} from 'lucide-react';
+import { Pencil, UserPlus, Link2, Check, X, Users, Crown, Shield, ShieldOff, LogOut, UserMinus, BellOff, Bell, Camera, Image, BarChart3, Plus, QrCode, Info, MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { CustomFilePicker } from '@/components/CustomFilePicker';
@@ -415,7 +412,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
                     autoFocus
                   />
                   <button className="g-icon-btn" onClick={handleSaveName} disabled={updateName.isPending}>
-                    {updateName.isPending ? <Loader2 className="h-4 w-4 animate-spin" style={{ color: '#E09F4D' }} /> : <Check className="h-4 w-4" style={{ color: '#4ade80' }} />}
+                    {updateName.isPending ? <SerkleLoader size="xs" className="text-current" style={{ color: '#E09F4D' }}/> : <Check className="h-4 w-4" style={{ color: '#4ade80' }} />}
                   </button>
                   <button className="g-icon-btn" onClick={() => { setIsEditingName(false); setEditedName(displayName); }}>
                     <X className="h-4 w-4" style={{ color: '#f87171' }} />
@@ -559,7 +556,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
             {activeTab === 'members' && (
               membersLoading ? (
                 <div style={{ display: 'flex', justifyContent: 'center', padding: '32px 0' }}>
-                  <Loader2 className="h-6 w-6 animate-spin" style={{ color: 'rgba(255,226,190,0.3)' }} />
+                  <SerkleLoader size="sm" className="text-current" style={{ color: 'rgba(255,226,190,0.3)' }}/>
                 </div>
               ) : (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -753,7 +750,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <button className="g-btn-solid primary" style={{ flex: 1 }} onClick={handleAddMembers} disabled={selectedFriends.length === 0 || isAddingSaving}>
-                  {isAddingSaving && <Loader2 className="h-4 w-4 animate-spin" style={{ marginRight: 4 }} />}
+                  {isAddingSaving && <SerkleLoader size="xs" className="text-current" style={{ marginRight: 4 }}/>}
                   Add {selectedFriends.length > 0 ? `(${selectedFriends.length})` : ''}
                 </button>
                 <button className="g-btn-solid ghost" onClick={() => { setIsAddingMembers(false); setSelectedFriends([]); }}>Cancel</button>
