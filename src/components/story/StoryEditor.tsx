@@ -14,7 +14,7 @@ interface Props {
   mediaType?: 'image' | 'video';
   initialPostElements?: { postCardImageUrl?: string };
   resharedPostId?: string;
-  onDone: (editedImageBlob: Blob, mentionedUserIds?: string[], extraData?: EditorExtraData) => void;
+  onDone: (editedImageBlob: Blob, mentionedUserIds?: string[], extraData?: EditorExtraData) => Promise<void> | void;
   onCancel: () => void;
 }
 
@@ -503,16 +503,18 @@ export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElemen
         .filter(e => e.infoType === 'mention' && e.mentionUserId)
         .map(e => e.mentionUserId as string);
 
-      onDone(blob, mentionedUserIds, {
+      await onDone(blob, mentionedUserIds, {
         mediaType: mediaType,
         originalVideoUrl: mediaType === 'video' ? previewUrl : undefined,
         story_state: state
       });
     } catch (e) {
       console.error('Failed to finalize story canvas:', e);
+    } finally {
       setIsSharing(false);
     }
   };
+
 
   return (
     <div className="fixed inset-0 z-[100] bg-black flex flex-col overflow-hidden" style={{ touchAction: 'none' }}>

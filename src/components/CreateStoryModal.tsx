@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
-import { X, Camera, Image as ImageIcon, Video, Upload } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
 import { VideoLoader } from '@/components/ui/VideoLoader';
-import { Button } from '@/components/ui/button';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from '@/hooks/use-toast';
 import StoryEditor from '@/components/story/StoryEditor';
-import { CustomFilePicker, useFileManager } from '@/components/CustomFilePicker';
+import { useFileManager } from '@/components/CustomFilePicker';
 import { storyService } from '@/services/storyService';
 
 interface CreateStoryModalProps {
@@ -24,7 +22,71 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
   const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string>('');
   const [editorMediaType, setEditorMediaType] = useState<'image' | 'video'>('image');
 
-  React.useEffect(() => {
+  // Hidden file input ref — used to bypass the modal and go straight to file selection
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  // Track whether we already triggered the file picker for this open cycle
+  const didTriggerRef = useRef(false);
+
+  // When isOpen transitions to true, immediately trigger the native file picker
+  useEffect(() => {
+    if (isOpen && !showEditor && !isUploading && storyManager.files.length === 0) {
+      if (!didTriggerRef.current) {
+        didTriggerRef.current = true;
+        // Small delay to ensure DOM is ready
+        requestAnimationFrame(() => {
+          fileInputRef.current?.click();
+        });
+      }
+    }
+    if (!isOpen) {
+      didTriggerRef.current = false;
+    }
+  }, [isOpen, showEditor, isUploading, storyManager.files.length]);
+
+  // When a file is selected via the input, add it to the manager
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      // User cancelled the file picker
+      onClose();
+      return;
+    }
+
+    const kind = file.type.startsWith('video/') ? 'video' as const : 'image' as const;
+    storyManager.addFiles([{
+      id: Math.random().toString(36).slice(2, 9),
+      file,
+      url: URL.createObjectURL(file),
+      kind,
+      name: file.name,
+      size: file.size,
+      mimeType: file.type,
+      status: 'idle',
+    }]);
+
+    // Reset input so the same file can be selected again
+    e.target.value = '';
+  };
+
+  // When the file picker is cancelled (no file selected), close the modal
+  // The 'cancel' event fires when the user dismisses the file dialog
+  useEffect(() => {
+    const input = fileInputRef.current;
+    if (!input) return;
+
+    const handleCancel = () => {
+      // Only close if we don't already have files or editor open
+      if (!showEditor && storyManager.files.length === 0) {
+        onClose();
+      }
+    };
+
+    input.addEventListener('cancel', handleCancel);
+    return () => input.removeEventListener('cancel', handleCancel);
+  }, [onClose, showEditor, storyManager.files.length]);
+
+  // When file manager has a file, open the editor
+  useEffect(() => {
     const activeFile = storyManager.files[0];
     if (activeFile && !showEditor) {
       setCroppedPreviewUrl(activeFile.url);
@@ -69,10 +131,20 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
       storyManager.removeFile(storyManager.files[0].id);
     }
     setShowEditor(false);
+    onClose();
   };
 
   return (
     <>
+      {/* Hidden file input — triggers immediately when modal opens */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,video/*"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+
       {/* Story Editor (fullscreen, above everything) */}
       {showEditor && croppedPreviewUrl && (
         <StoryEditor
@@ -83,42 +155,12 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
         />
       )}
 
-      {/* Hide the modal UI when editor is open so it doesn't cover the editor */}
-      <div className={`fixed inset-0 z-[100] flex items-center justify-center bg-black/80 ${showEditor ? 'hidden' : ''}`}>
-        <div className="bg-background rounded-2xl w-full max-w-md mx-4 max-h-[90vh] overflow-hidden relative">
-          {/* Header */}
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="text-lg font-semibold text-foreground">Create Story</h2>
-            <button onClick={onClose} className="p-1 rounded-full hover:bg-muted transition-colors">
-              <X className="size-5 text-muted-foreground" />
-            </button>
-          </div>
-
-          {/* Content */}
-          <div className="p-4 space-y-4 max-h-[calc(90vh-8rem)] overflow-y-auto">
-            <div className="border-2 border-dashed border-border rounded-xl p-8 text-center">
-              <div className="flex justify-center gap-4 mb-4">
-                <Camera className="size-8 text-muted-foreground" />
-                <ImageIcon className="size-8 text-muted-foreground" />
-                <Video className="size-8 text-muted-foreground" />
-              </div>
-              <p className="text-muted-foreground mb-4">Share a moment from your day</p>
-              <CustomFilePicker manager={storyManager} hideUploadButton hidePreviewList accept="image/*,video/*">
-                <Button className="w-full">
-                  <Upload className="size-4 mr-2" /> Choose Photo or Video
-                </Button>
-              </CustomFilePicker>
-            </div>
-          </div>
-
-          {/* Upload animation overlay */}
-          {isUploading && (
-            <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex flex-col items-center justify-center z-10 rounded-2xl">
-              <VideoLoader size="lg" label="Uploading story..." sublabel="Please wait" />
-            </div>
-          )}
+      {/* Upload animation overlay — shown while story is being uploaded to Supabase */}
+      {isUploading && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex flex-col items-center justify-center">
+          <VideoLoader size="lg" label="Uploading story..." sublabel="Please wait" />
         </div>
-      </div>
+      )}
     </>
   );
 };
