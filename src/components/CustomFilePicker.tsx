@@ -120,6 +120,10 @@ export interface CustomFilePickerProps {
   expandDirection?: 'left' | 'right';
   /** Disable the picker interaction. Default: false */
   disabled?: boolean;
+  /** Auto-open the action sheet on mount. Default: false */
+  autoOpen?: boolean;
+  /** Called when the action sheet is dismissed without a file being selected */
+  onSheetDismiss?: () => void;
   /** Optional custom trigger children */
   children?: React.ReactNode;
 }
@@ -248,6 +252,8 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
   disabled = false,
   expandInline = false,
   expandDirection = 'right',
+  autoOpen = false,
+  onSheetDismiss,
   children,
 }) => {
   const internalManager = useFileManager();
@@ -263,11 +269,40 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
     setSheetOpen(true);
   };
 
+  // Auto-open the sheet on mount when autoOpen is true
+  const didAutoOpenRef = useRef(false);
+  useEffect(() => {
+    if (autoOpen && !didAutoOpenRef.current) {
+      didAutoOpenRef.current = true;
+      // Small delay so the component is fully mounted
+      requestAnimationFrame(() => handleOpenSheet());
+    }
+    if (!autoOpen) {
+      didAutoOpenRef.current = false;
+    }
+  }, [autoOpen]);
+
   // Collapse whichever picker surface is open (bottom sheet or inline pill).
   const closeSheet = useCallback(() => {
     setSheetOpen(false);
     setExpanded(false);
   }, []);
+
+  // Track when sheet closes: if no files were added, notify parent
+  const prevSheetOpenRef = useRef(false);
+  useEffect(() => {
+    // Detect sheet closing (was open, now closed)
+    if (prevSheetOpenRef.current && !sheetOpen) {
+      // Give a short delay for file processing to complete
+      const t = setTimeout(() => {
+        if (files.length === 0 && onSheetDismiss) {
+          onSheetDismiss();
+        }
+      }, 400);
+      return () => clearTimeout(t);
+    }
+    prevSheetOpenRef.current = sheetOpen;
+  }, [sheetOpen, files.length, onSheetDismiss]);
 
   // Inline pill: collapse on any outside interaction.
   useEffect(() => {

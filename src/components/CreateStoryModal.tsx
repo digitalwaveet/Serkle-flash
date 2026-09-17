@@ -1,9 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { VideoLoader } from '@/components/ui/VideoLoader';
 import { useUser } from '@/contexts/UserContext';
 import { toast } from '@/hooks/use-toast';
 import StoryEditor from '@/components/story/StoryEditor';
-import { useFileManager } from '@/components/CustomFilePicker';
+import { CustomFilePicker, useFileManager } from '@/components/CustomFilePicker';
 import { storyService } from '@/services/storyService';
 
 interface CreateStoryModalProps {
@@ -21,69 +21,6 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
   const [showEditor, setShowEditor] = useState(false);
   const [croppedPreviewUrl, setCroppedPreviewUrl] = useState<string>('');
   const [editorMediaType, setEditorMediaType] = useState<'image' | 'video'>('image');
-
-  // Hidden file input ref — used to bypass the modal and go straight to file selection
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  // Track whether we already triggered the file picker for this open cycle
-  const didTriggerRef = useRef(false);
-
-  // When isOpen transitions to true, immediately trigger the native file picker
-  useEffect(() => {
-    if (isOpen && !showEditor && !isUploading && storyManager.files.length === 0) {
-      if (!didTriggerRef.current) {
-        didTriggerRef.current = true;
-        // Small delay to ensure DOM is ready
-        requestAnimationFrame(() => {
-          fileInputRef.current?.click();
-        });
-      }
-    }
-    if (!isOpen) {
-      didTriggerRef.current = false;
-    }
-  }, [isOpen, showEditor, isUploading, storyManager.files.length]);
-
-  // When a file is selected via the input, add it to the manager
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) {
-      // User cancelled the file picker
-      onClose();
-      return;
-    }
-
-    const kind = file.type.startsWith('video/') ? 'video' as const : 'image' as const;
-    storyManager.addFiles([{
-      id: Math.random().toString(36).slice(2, 9),
-      file,
-      url: URL.createObjectURL(file),
-      kind,
-      name: file.name,
-      size: file.size,
-      mimeType: file.type,
-      status: 'idle',
-    }]);
-
-    // Reset input so the same file can be selected again
-    e.target.value = '';
-  };
-
-  // When the file picker is cancelled (no file selected), close the modal
-  // The 'cancel' event fires when the user dismisses the file dialog
-  useEffect(() => {
-    const input = fileInputRef.current;
-    if (!input) return;
-
-    const handleCancel = () => {
-      // Only close if we don't already have files or editor open
-      if (!showEditor && storyManager.files.length === 0) {
-        onClose();
-      }
-    };
-
-    input.addEventListener('cancel', handleCancel);
-    return () => input.removeEventListener('cancel', handleCancel);
-  }, [onClose, showEditor, storyManager.files.length]);
 
   // When file manager has a file, open the editor
   useEffect(() => {
@@ -134,16 +71,30 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
     onClose();
   };
 
+  // Called when the custom action sheet is dismissed without a file being selected
+  const handleSheetDismiss = () => {
+    if (!showEditor && storyManager.files.length === 0) {
+      onClose();
+    }
+  };
+
   return (
     <>
-      {/* Hidden file input — triggers immediately when modal opens */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*,video/*"
-        className="hidden"
-        onChange={handleFileChange}
-      />
+      {/* 
+        CustomFilePicker with autoOpen — immediately shows the "Choose Source" 
+        action sheet (Camera / Photo Library / Video) when the story creation opens.
+        No trigger button needed — the sheet opens on its own.
+      */}
+      {!showEditor && !isUploading && (
+        <CustomFilePicker
+          manager={storyManager}
+          hideUploadButton
+          hidePreviewList
+          accept="image/*,video/*"
+          autoOpen
+          onSheetDismiss={handleSheetDismiss}
+        />
+      )}
 
       {/* Story Editor (fullscreen, above everything) */}
       {showEditor && croppedPreviewUrl && (
