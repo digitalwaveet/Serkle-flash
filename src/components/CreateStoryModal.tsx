@@ -32,6 +32,15 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
     }
   }, [storyManager.files, showEditor]);
 
+  // Reset state when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setShowEditor(false);
+      setIsUploading(false);
+      storyManager.clearAll();
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleEditorDone = async (editedBlob: Blob, mentionedUserIds?: string[], extraData?: any) => {
@@ -40,10 +49,8 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
       return;
     }
 
-    // Clear the active file immediately to prevent useEffect from re-opening the editor
-    if (storyManager.files[0]) {
-      storyManager.removeFile(storyManager.files[0].id);
-    }
+    // Clear active files immediately to prevent useEffect from re-opening the editor
+    storyManager.clearAll();
 
     setShowEditor(false);
     setIsUploading(true);
@@ -64,9 +71,7 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
   };
 
   const handleEditorCancel = () => {
-    if (storyManager.files[0]) {
-      storyManager.removeFile(storyManager.files[0].id);
-    }
+    storyManager.clearAll();
     setShowEditor(false);
     onClose();
   };

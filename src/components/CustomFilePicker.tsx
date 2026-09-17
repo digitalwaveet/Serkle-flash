@@ -139,10 +139,15 @@ const formatSize = (bytes: number): string => {
   return `${(bytes / 1024 ** i).toFixed(1)} ${units[i]}`;
 };
 
-const detectKind = (mimeType: string): FileKind => {
+const detectKind = (mimeType: string, fileName?: string): FileKind | null => {
   if (mimeType.startsWith('image/')) return 'image';
   if (mimeType.startsWith('video/')) return 'video';
-  return 'file';
+  if (fileName) {
+    const ext = fileName.split('.').pop()?.toLowerCase() || '';
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'heic', 'heif', 'bmp', 'svg'].includes(ext)) return 'image';
+    if (['mp4', 'mov', 'webm', 'm4v', '3gp', 'mkv', 'avi'].includes(ext)) return 'video';
+  }
+  return null;
 };
 
 const fileExtIcon: Record<string, string> = {
@@ -264,8 +269,14 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
   const [isUploading, setIsUploading] = useState(false);
   const [sizeError, setSizeError] = useState<string | null>(null);
 
+  // Track when user is actively selecting a file from system picker
+  const isSelectingRef = useRef(false);
+
   const handleOpenSheet = () => {
-    pushModalState('file-picker-sheet', () => setSheetOpen(false));
+    pushModalState('file-picker-sheet', () => {
+      isSelectingRef.current = false;
+      setSheetOpen(false);
+    });
     setSheetOpen(true);
   };
 
@@ -288,14 +299,14 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
     setExpanded(false);
   }, []);
 
-  // Track when sheet closes: if no files were added, notify parent
+  // Track when sheet closes: if no files were added and user didn't choose a source, notify parent
   const prevSheetOpenRef = useRef(false);
   useEffect(() => {
     // Detect sheet closing (was open, now closed)
     if (prevSheetOpenRef.current && !sheetOpen) {
       // Give a short delay for file processing to complete
       const t = setTimeout(() => {
-        if (files.length === 0 && onSheetDismiss) {
+        if (!isSelectingRef.current && files.length === 0 && onSheetDismiss) {
           onSheetDismiss();
         }
       }, 400);
@@ -332,7 +343,7 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
         return acc;
       }
       const mimeType = file.type || 'application/octet-stream';
-      const kind = detectKind(mimeType) ?? fallbackKind;
+      const kind = detectKind(mimeType, file.name) ?? fallbackKind;
       acc.push({
         id: genId(),
         file,
@@ -356,7 +367,15 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
     return items;
   };
 
+  const handleCancelSelection = () => {
+    isSelectingRef.current = false;
+    if (files.length === 0 && onSheetDismiss) {
+      onSheetDismiss();
+    }
+  };
+
   const processInput = (e: React.ChangeEvent<HTMLInputElement>, kind: FileKind = 'file') => {
+    isSelectingRef.current = false;
     let items = buildItems(e.target.files, kind);
     if (items.length) {
       if (multiple && maxFiles && (files.length + items.length > maxFiles)) {
@@ -375,6 +394,7 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    isSelectingRef.current = false;
     let items = buildItems(e.target.files, 'file'); // Default to 'file' kind
     if (items.length) {
       if (multiple && maxFiles && (files.length + items.length > maxFiles)) {
@@ -393,18 +413,18 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
 
   // ── Action sheet handlers ───────────────────────────────────────────────────
 
-  // FIX #3: Always close sheet first, then trigger input after animation
+  // Always close sheet first, then trigger input after animation
   const closeAndTrigger = (triggerFn: () => void) => {
     closeSheet();
     setTimeout(triggerFn, 300); // wait for sheet slide-down animation
   };
 
   const handleCamera = async () => {
+    isSelectingRef.current = true;
     closeSheet();
 
     if (Capacitor.isNativePlatform()) {
       try {
-        // FIX #4: Use DataUrl for consistent cross-device support
         const { Camera, CameraResultType, CameraSource } = await import('@capacitor/camera');
         const photo = await Camera.getPhoto({
           quality: 90,
@@ -413,6 +433,7 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
           source: CameraSource.Camera,
         });
 
+        isSelectingRef.current = false;
         if (photo.dataUrl) {
           const blob = await fetch(photo.dataUrl).then((r) => r.blob());
           const ext = photo.format ?? 'jpeg';
@@ -429,8 +450,13 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
           }]);
         }
       } catch (err: any) {
-        if (err?.message !== 'User cancelled photos app') {
+        isSelectingRef.current = false;
+        if (err?.message !== 'User cancelled photos app' && !err?.message?.toLowerCase().includes('cancel')) {
           console.error('Camera error:', err);
+        } else {
+          if (files.length === 0 && onSheetDismiss) {
+            onSheetDismiss();
+          }
         }
       }
     } else {
@@ -443,6 +469,7 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
   };
 
   const handlePhotoLibrary = async () => {
+    isSelectingRef.current = true;
     closeSheet();
 
     if (Capacitor.isNativePlatform()) {
@@ -455,6 +482,7 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
           source: CameraSource.Photos,
         });
 
+        isSelectingRef.current = false;
         if (photo.dataUrl) {
           const blob = await fetch(photo.dataUrl).then((r) => r.blob());
           const ext = photo.format ?? 'jpeg';
@@ -471,8 +499,13 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
           }]);
         }
       } catch (err: any) {
-        if (err?.message !== 'User cancelled photos app') {
+        isSelectingRef.current = false;
+        if (err?.message !== 'User cancelled photos app' && !err?.message?.toLowerCase().includes('cancel')) {
           console.error('Photo library error:', err);
+        } else {
+          if (files.length === 0 && onSheetDismiss) {
+            onSheetDismiss();
+          }
         }
       }
     } else {
@@ -483,10 +516,13 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
     }
   };
 
-  const handleVideo = () =>
+  const handleVideo = () => {
+    isSelectingRef.current = true;
     closeAndTrigger(() => videoInputRef.current?.click());
+  };
 
-  const handleAnyFile = () =>
+  const handleAnyFile = () => {
+    isSelectingRef.current = true;
     closeAndTrigger(() => {
       if (fileInputRef.current) {
         fileInputRef.current.accept = accept || ''; // Set accept prop
@@ -494,6 +530,7 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
         fileInputRef.current.click();
       }
     });
+  };
 
   // ── Upload ──────────────────────────────────────────────────────────────────
 
@@ -595,6 +632,7 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
         multiple={multiple}
         className="hidden"
         onChange={(e) => processInput(e, 'image')}
+        onCancel={handleCancelSelection}
       />
       <input
         ref={videoInputRef}
@@ -603,6 +641,7 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
         multiple={multiple}
         className="hidden"
         onChange={(e) => processInput(e, 'video')}
+        onCancel={handleCancelSelection}
       />
       <input
         ref={anyInputRef}
@@ -610,12 +649,14 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
         multiple={multiple}
         className="hidden"
         onChange={(e) => processInput(e, 'file')}
+        onCancel={handleCancelSelection}
       />
       {/* New generic file input for 'Any File' option, respecting accept/multiple props */}
       <input
         type="file"
         ref={fileInputRef}
         onChange={handleFileSelect}
+        onCancel={handleCancelSelection}
         className="hidden"
       />
 
@@ -793,7 +834,10 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
       {!expandInline && sheetOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 pointer-events-auto"
-          onClick={() => setSheetOpen(false)}
+          onClick={() => {
+            isSelectingRef.current = false;
+            setSheetOpen(false);
+          }}
           aria-hidden="true"
         />
       )}
@@ -872,7 +916,10 @@ export const CustomFilePicker: React.FC<CustomFilePickerProps> = ({
         <div className="px-4 pb-10 pt-2">
           <button
             type="button"
-            onClick={() => setSheetOpen(false)}
+            onClick={() => {
+              isSelectingRef.current = false;
+              setSheetOpen(false);
+            }}
             className="w-full py-4 bg-muted hover:bg-muted/70 text-foreground font-bold rounded-2xl active:scale-[0.98] transition-all"
             aria-label="Cancel"
           >
