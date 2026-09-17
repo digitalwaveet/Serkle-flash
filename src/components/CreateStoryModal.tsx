@@ -80,20 +80,18 @@ const CreateStoryModal: React.FC<CreateStoryModalProps> = ({ isOpen, onClose, on
 
   return (
     <>
-      {/* 
-        CustomFilePicker with autoOpen — immediately shows the "Choose Source" 
-        action sheet (Camera / Photo Library / Video) when the story creation opens.
-        No trigger button needed — the sheet opens on its own.
-      */}
+      {/* Fullscreen backdrop + CustomFilePicker action sheet */}
       {!showEditor && !isUploading && (
-        <CustomFilePicker
-          manager={storyManager}
-          hideUploadButton
-          hidePreviewList
-          accept="image/*,video/*"
-          autoOpen
-          onSheetDismiss={handleSheetDismiss}
-        />
+        <div className="fixed inset-0 z-[100] bg-black/90">
+          <CustomFilePicker
+            manager={storyManager}
+            hideUploadButton
+            hidePreviewList
+            accept="image/*,video/*"
+            autoOpen
+            onSheetDismiss={handleSheetDismiss}
+          />
+        </div>
       )}
 
       {/* Story Editor (fullscreen, above everything) */}
