@@ -13,7 +13,7 @@ cleanupOutdatedCaches();
 
 // Bypass SW for Supabase Storage (Fix for Video Range Requests / ERR_CACHE_OPERATION_NOT_SUPPORTED)
 registerRoute(
-  ({ url }) => url.host.includes('supabase.co') && url.pathname.includes('/storage/v1/object/public/'),
+  ({ url }) => /\/storage\/v1\/object\/(public|sign|authenticated)\//.test(url.pathname),
   new NetworkOnly()
 );
 

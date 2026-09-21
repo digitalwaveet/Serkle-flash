@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
 import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 import type { MediaItem } from './MediaGroupMosaic';
+import { useChatMediaUrls } from '@/hooks/useChatMediaUrls';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 
 interface MediaLightboxProps {
   items: MediaItem[];
@@ -13,7 +15,9 @@ interface MediaLightboxProps {
 const MediaLightbox: React.FC<MediaLightboxProps> = ({ items, initialIndex, onClose }) => {
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const touchStart = useRef<{ x: number; y: number } | null>(null);
-  const item = items[currentIndex];
+  const source = items[currentIndex];
+  const media = useChatMediaUrls([source.url]);
+  const item = { ...source, url: media.url(source.url) };
 
   const goNext = useCallback(() => {
     if (currentIndex < items.length - 1) setCurrentIndex(i => i + 1);
@@ -87,6 +91,8 @@ const MediaLightbox: React.FC<MediaLightboxProps> = ({ items, initialIndex, onCl
         <button
           type="button"
           onClick={handleDownload}
+          disabled={!item.url}
+          aria-label="Download attachment"
           className="p-2 rounded-full hover:bg-card/10 transition-colors active:scale-90"
         >
           <Download className="h-5 w-5 text-white" />
@@ -95,7 +101,11 @@ const MediaLightbox: React.FC<MediaLightboxProps> = ({ items, initialIndex, onCl
 
       {/* Media */}
       <div className="flex-1 flex items-center justify-center relative overflow-hidden">
-        {item.type === 'video' ? (
+        {!item.url ? (
+          media.failed(source.url)
+            ? <button type="button" onClick={media.retry} className="min-h-11 px-4 text-white">Attachment unavailable · Retry</button>
+            : <SerkleLoader size="md" dark label="Loading private attachment" />
+        ) : item.type === 'video' ? (
           <video
             key={item.id}
             src={item.url}

@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useToast } from '@/hooks/use-toast';
@@ -6,7 +6,6 @@ import { useLiveQuery } from 'dexie-react-hooks';
 import { chatDb, sanitizeMessage } from '@/lib/db';
 import { syncConversation, processSyncQueue } from '@/lib/sync';
 import { useNotifications } from './useNotifications';
-import { debounce } from '@/lib/utils';
 
 export interface Message {
   id: string;
@@ -27,9 +26,10 @@ export interface Message {
   };
 }
 
-export const useMessages = (conversationId: string | null, userId: string | undefined) => {
+export const useMessages = (conversationId: string | null, userId: string | undefined, canMarkRead = false) => {
   const queryClient = useQueryClient();
   const [isSyncing, setIsSyncing] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
   const [limit, setLimit] = useState(50);
   const [hasMore, setHasMore] = useState(true);
   const lastSyncedReadSeq = useRef(0);
@@ -119,7 +119,9 @@ export const useMessages = (conversationId: string | null, userId: string | unde
 
     try {
       await syncConversation(conversationId);
+      setError(null);
     } catch (err) {
+      setError(err instanceof Error ? err : new Error('Unable to refresh messages'));
       console.error('[Sync] Conversation sync error:', err);
     } finally {
       syncInFlight.current = false;
@@ -147,15 +149,8 @@ export const useMessages = (conversationId: string | null, userId: string | unde
     // Fast Path: Broadcast Channel (delivered in ~50ms)
     const broadcastChannel = supabase
       .channel(`chat:${conversationId}`)
-      .on('broadcast', { event: 'new_message' }, async ({ payload }) => {
-        if (payload.sender_id === userId) return; // Skip own broadcasts
-
-        // Instant insert into Dexie - triggers useLiveQuery immediately
-        await chatDb.messages.put(sanitizeMessage({
-          ...payload,
-          sync_status: 'sent' // Treat broadcast messages as delivered/sent
-        }));
-      })
+      // Broadcasts are hints, never trusted message content.
+      .on('broadcast', { event: 'new_message' }, debouncedSync)
       .subscribe();
 
     // Reliability Fallback: Postgres Changes Channel (delivered in ~300-800ms)
@@ -181,7 +176,11 @@ export const useMessages = (conversationId: string | null, userId: string | unde
         { event: '*', schema: 'public', table: 'read_receipts', filter: `conversation_id=eq.${conversationId}` },
         async (payload) => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
-            await chatDb.read_receipts.put(payload.new as any);
+            const receipt = payload.new as { conversation_id: string; user_id: string; last_read_seq: number; updated_at: string };
+            await chatDb.transaction('rw', chatDb.read_receipts, async () => {
+              const current = await chatDb.read_receipts.get([receipt.conversation_id, receipt.user_id]);
+              if (!current || receipt.last_read_seq > current.last_read_seq) await chatDb.read_receipts.put(receipt);
+            });
           }
         }
       )
@@ -195,47 +194,39 @@ export const useMessages = (conversationId: string | null, userId: string | unde
   }, [conversationId, userId, queryClient, runSync, debouncedSync]);
 
   const { markConversationNotificationsAsRead } = useNotifications();
+  useEffect(() => { lastSyncedReadSeq.current = 0; }, [conversationId, userId]);
   
   // 5. Optimized Read-Receipt Loop - Fixes redundant sync triggers
   useEffect(() => {
     const lastMsg = localMessages?.[localMessages.length - 1];
-    if (!conversationId || !userId || !lastMsg?.seq || lastMsg.seq <= lastSyncedReadSeq.current) return;
+    if (!canMarkRead || !conversationId || !userId || !lastMsg?.seq || lastMsg.seq <= lastSyncedReadSeq.current) return;
 
     // Debounce read-receipt write for a better feel
     const timer = setTimeout(async () => {
-      // Update ref immediately to prevent race conditions during debounce
-      lastSyncedReadSeq.current = lastMsg.seq!;
-
-      // Double-check current DB state before writing - only update if actually higher
-      const existing = await chatDb.read_receipts
-        .where('[conversation_id+user_id]')
-        .equals([conversationId, userId])
-        .first();
-
-      if (existing && existing.last_read_seq >= lastMsg.seq!) return;
-
-      const receipt = {
-        user_id: userId,
-        conversation_id: conversationId,
-        last_read_seq: lastMsg.seq!,
-        updated_at: new Date().toISOString()
-      };
+      if (document.visibilityState !== 'visible' || !document.hasFocus()) return;
 
       try {
-        // 1. Update local DB - This triggers useUnreadCount immediately via useLiveQuery
-        await Promise.all([
-          chatDb.read_receipts.put(receipt),
-          chatDb.conversations_meta.update(conversationId, { unread_count: 0 })
-        ]);
+        const receipt = {
+          user_id: userId,
+          conversation_id: conversationId,
+          last_read_seq: lastMsg.seq!,
+          updated_at: new Date().toISOString()
+        };
 
-        // 2. Queue for server sync
-        await chatDb.sync_queue.put({
-          id: `read_${conversationId}_${userId}`,
-          type: 'read_receipt',
-          payload: receipt,
-          created_at: new Date().toISOString(),
-          retry_count: 0
+        await chatDb.transaction('rw', chatDb.read_receipts, chatDb.conversations_meta, chatDb.sync_queue, async () => {
+          const existing = await chatDb.read_receipts.get([conversationId, userId]);
+          if (existing && existing.last_read_seq >= receipt.last_read_seq) return;
+          await chatDb.read_receipts.put(receipt);
+          await chatDb.conversations_meta.update(conversationId, { unread_count: 0 });
+          await chatDb.sync_queue.put({
+            id: `read_${conversationId}_${userId}`,
+            type: 'read_receipt',
+            payload: receipt,
+            created_at: new Date().toISOString(),
+            retry_count: 0
+          });
         });
+        lastSyncedReadSeq.current = lastMsg.seq!;
 
         // 3. Trigger queue processing
         processSyncQueue().catch(console.error);
@@ -251,7 +242,7 @@ export const useMessages = (conversationId: string | null, userId: string | unde
     }, 300); // Reduced delay for more responsive feel
 
     return () => clearTimeout(timer);
-  }, [localMessages && localMessages.length > 0 ? localMessages[localMessages.length - 1].seq : null, conversationId, userId]);
+  }, [localMessages && localMessages.length > 0 ? localMessages[localMessages.length - 1].seq : null, conversationId, userId, canMarkRead]);
 
   const messagesWithSenders = useMemo(() => {
     return localMessages?.map((msg: any) => ({
@@ -277,7 +268,8 @@ export const useMessages = (conversationId: string | null, userId: string | unde
     isSyncing,
     hasMore,
     loadMore,
-    error: null,
+    error,
+    refetch: runSync,
   };
 };
 
@@ -345,13 +337,13 @@ export const useRetryMessage = () => {
     },
     onSuccess: () => {
       // Refresh local messages if needed or let hooks handle it
-    }
+    },
+    onError: () => toast({ title: 'Could not retry this message', variant: 'destructive' }),
   });
 };
 
 export const useSendMessage = () => {
   const queryClient = useQueryClient();
-  const broadcastRef = useRef<any>(null);
   const { toast } = useToast();
 
   const sendMessageMutation = useMutation({
@@ -387,87 +379,23 @@ export const useSendMessage = () => {
         updated_at: now,
       };
 
-      // 1. Instantly write to local UI db
-      await chatDb.messages.put(sanitizeMessage({
-        ...insertData,
-        sync_status: 'pending'
-      }));
-
-      // 2. Fast Path: Broadcast Directly to Active Peer
-      if (navigator.onLine) {
-        if (!broadcastRef.current || broadcastRef.current.topic !== `chat:${conversationId}`) {
-          // If we changed conversations or haven't subscribed yet
-          if (broadcastRef.current) supabase.removeChannel(broadcastRef.current);
-          broadcastRef.current = supabase.channel(`chat:${conversationId}`);
-          broadcastRef.current.subscribe();
-        }
-
-        broadcastRef.current.send({
-          type: 'broadcast',
-          event: 'new_message',
-          payload: insertData
-        });
-      }
-
-      // 3. Reliable Path: Push to Supabase Database
-      if (navigator.onLine) {
-        // Mark as sending
-        const existingSending = await chatDb.messages.get(messageId);
-        if (existingSending) {
-          existingSending.sync_status = 'sending';
-          await chatDb.messages.put(existingSending);
-        }
-
-        // SANITIZATION: Replace empty strings with null for Supabase to avoid UUID error
-        const supabaseData = {
-          ...insertData,
-          attachment_url: insertData.attachment_url || null,
-          reply_to_id: insertData.reply_to_id || null,
-        };
-
-        const { error } = await supabase
-          .from('messages')
-          .insert(supabaseData);
-
-        if (error) {
-          console.warn('Server push failed, queuing locally:', error);
-          const existingFailed = await chatDb.messages.get(messageId);
-          if (existingFailed) {
-            existingFailed.sync_status = 'failed';
-            await chatDb.messages.put(existingFailed);
-          }
-          await chatDb.sync_queue.put({
-            id: messageId,
-            type: 'message_insert',
-            payload: insertData,
-            created_at: now,
-            retry_count: 0
-          });
-        } else {
-          // Success, upgrade to sent
-          const existingSent = await chatDb.messages.get(messageId);
-          if (existingSent) {
-            existingSent.sync_status = 'sent';
-            await chatDb.messages.put(existingSent);
-          }
-        }
-      } else {
-        // Offline: enqueue silently
+      // Save the message AND outbox entry atomically before any network work.
+      await chatDb.transaction('rw', chatDb.messages, chatDb.sync_queue, async () => {
+        await chatDb.messages.put(sanitizeMessage({ ...insertData, sync_status: 'pending' }));
         await chatDb.sync_queue.put({
           id: messageId,
           type: 'message_insert',
           payload: insertData,
           created_at: now,
-          retry_count: 0
+          retry_count: 0,
+          status: 'pending'
         });
-      }
+      });
 
       return insertData;
     },
-    onSuccess: async (_, variables) => {
-      // Trigger local DB sync immediately so the queue processes
-      await syncConversation(variables.conversationId);
-      processSyncQueue().catch(console.error);
+    onSuccess: (_, variables) => {
+      processSyncQueue().then(() => syncConversation(variables.conversationId)).catch(console.error);
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
     },
     onError: (error) => {
@@ -475,13 +403,6 @@ export const useSendMessage = () => {
       toast({ title: 'Failed to send message', variant: 'destructive' });
     },
   });
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (broadcastRef.current) supabase.removeChannel(broadcastRef.current);
-    };
-  }, []);
 
   return {
     sendMessage: sendMessageMutation.mutate,

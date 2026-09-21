@@ -1,9 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useUser } from '@/contexts/UserContext';
 import { playMessageSound } from '@/utils/notificationSound';
-import { chatDb } from '@/lib/db';
+import { chatDb, sanitizeMessage } from '@/lib/db';
 import { syncConversations } from '@/lib/sync';
 
 /**
@@ -13,7 +13,6 @@ import { syncConversations } from '@/lib/sync';
 const GlobalRealtimeListener = () => {
   const queryClient = useQueryClient();
   const { user } = useUser();
-  const prevUnreadRef = useRef<number>(-1);
 
   useEffect(() => {
     if (!user?.id) return;
@@ -26,73 +25,30 @@ const GlobalRealtimeListener = () => {
         { event: 'INSERT', schema: 'public', table: 'messages' },
         async (payload) => {
           const msg = payload.new as any;
-          const senderId = msg?.sender_id;
-
-          // ✅ ONLY increment if current user is the receiver, not the sender
-          if (senderId && senderId === user.id) return;
-
-          // Only play sound if this message is NOT from the current user
-          if (senderId) {
-            playMessageSound();
-          }
-
-          // ✅ Also skip if the conversation is currently open and visible
-          const currentPath = window.location.pathname;
-          const isMainChatOpen = currentPath === `/messages/${msg.conversation_id}`;
-          const isShopChatOpen = currentPath === `/shop/messages/${msg.conversation_id}`;
-          const isConversationOpen = (isMainChatOpen || isShopChatOpen) && !document.hidden;
-
-          if (isConversationOpen) {
-            // The active chat's useMessages hook will handle marking it as read
-            // To ensure we don't have a temporary visual glitch, proactively reset it locally
-            try {
-              if (msg.conversation_id) {
-                await chatDb.conversations_meta.update(msg.conversation_id, { unread_count: 0 });
-              }
-            } catch (err) {
-              console.error('Failed to optimistically reset unread count:', err);
+          if (!msg.conversation_id || !msg.sender_id) return;
+          if (msg.sender_id !== user.id) playMessageSound();
+          await chatDb.transaction('rw', chatDb.messages, chatDb.conversations_meta, chatDb.read_receipts, async () => {
+            const existing = await chatDb.messages.get(msg.id);
+            const receipt = await chatDb.read_receipts.get([msg.conversation_id, user.id]);
+            const conv = await chatDb.conversations_meta.get(msg.conversation_id);
+            const arrivedSeq = Number(msg.created_seq ?? msg.seq ?? 0);
+            const unread = !existing && msg.sender_id !== user.id && !msg.deleted_for_everyone
+              && arrivedSeq > (receipt?.last_read_seq || 0);
+            await chatDb.messages.put(sanitizeMessage({ ...msg, seq: Number(msg.seq), created_seq: arrivedSeq, sync_status: 'sent' }));
+            if (conv) {
+              await chatDb.conversations_meta.put({
+                ...conv,
+                unread_count: (conv.unread_count || 0) + (unread ? 1 : 0),
+                unread_latest_seq: Math.max(conv.unread_latest_seq || 0, Number(msg.seq || 0)),
+                ...(msg.created_at >= (conv.last_message_at || '') ? {
+                  last_message: msg.content, last_message_at: msg.created_at, last_message_sender_id: msg.sender_id
+                } : {}),
+              });
             }
-            return;
-          }
-
-          // ✅ Otherwise, it's a legit background message for *this* user
-          if (msg.conversation_id) {
-            try {
-              const conv = await chatDb.conversations_meta.get(msg.conversation_id);
-              if (conv) {
-                await chatDb.conversations_meta.update(msg.conversation_id, {
-                  unread_count: (conv.unread_count || 0) + 1,
-                  last_message: msg.content,
-                  last_message_at: msg.created_at,
-                  last_message_sender_id: msg.sender_id
-                });
-              } else {
-                // NEW CONVERSATION: Create an immediate placeholder entry so the badge
-                // appears instantly. The full sync will fill in the rest of the data.
-                await chatDb.conversations_meta.put({
-                  conversation_id: msg.conversation_id,
-                  other_user_id: msg.sender_id,
-                  other_user_name: 'New message',
-                  other_user_username: null,
-                  other_user_avatar: null,
-                  other_user_initials: '?',
-                  other_user_online: false,
-                  last_message: msg.content,
-                  last_message_at: msg.created_at,
-                  last_message_sender_id: msg.sender_id,
-                  unread_count: 1,
-                  is_group: false,
-                  group_name: null,
-                  group_avatar_url: null,
-                  member_count: 0,
-                });
-                // Then trigger a full sync to get the real data
-                syncConversations(user.id).catch(console.error);
-              }
-            } catch (err) {
-              console.error('Failed to optimistically update unread count:', err);
-            }
-          }
+          });
+          // Reconcile unknown conversations and counts from the server; never
+          // mark read merely because the conversation route is open.
+          void syncConversations(user.id).catch(console.error);
         }
       )
       .on(
@@ -100,6 +56,20 @@ const GlobalRealtimeListener = () => {
         { event: 'UPDATE', schema: 'public', table: 'messages' },
         () => {
           queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          void syncConversations(user.id).catch(console.error);
+        }
+      )
+      .on('postgres_changes',
+        { event: '*', schema: 'public', table: 'read_receipts', filter: `user_id=eq.${user.id}` },
+        async payload => {
+          if (payload.eventType !== 'DELETE') {
+            const incoming = payload.new as { conversation_id: string; user_id: string; last_read_seq: number; updated_at: string };
+            await chatDb.transaction('rw', chatDb.read_receipts, async () => {
+              const current = await chatDb.read_receipts.get([incoming.conversation_id, user.id]);
+              if (!current || Number(incoming.last_read_seq) > current.last_read_seq) await chatDb.read_receipts.put(incoming);
+            });
+          }
+          void syncConversations(user.id).catch(console.error);
         }
       )
       // When read status updates, refresh conversations for badge count

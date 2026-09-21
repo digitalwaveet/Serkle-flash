@@ -39,6 +39,17 @@ export const useConversations = (userId: string | undefined) => {
       syncConversations(userId).catch(console.error);
       syncPinnedConversations(userId).catch(console.error);
     }
+    const refresh = () => {
+      if (userId && document.visibilityState === 'visible') void syncConversations(userId).catch(console.error);
+    };
+    window.addEventListener('focus', refresh);
+    window.addEventListener('online', refresh);
+    const timer = setInterval(refresh, 30000);
+    return () => {
+      window.removeEventListener('focus', refresh);
+      window.removeEventListener('online', refresh);
+      clearInterval(timer);
+    };
   }, [userId]);
 
   const refetch = useCallback(async () => {

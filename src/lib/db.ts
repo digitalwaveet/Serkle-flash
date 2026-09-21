@@ -15,6 +15,7 @@ export interface LocalMessage {
   created_at: string;
   updated_at: string;
   seq?: number;
+  created_seq?: number;
   sync_status: 'pending' | 'sending' | 'sent' | 'delivered' | 'read' | 'failed';
 }
 
@@ -30,6 +31,8 @@ export interface LocalConversationMeta {
   last_message_at: string | null;
   last_message_sender_id: string | null;
   unread_count: number;
+  unread_read_seq?: number;
+  unread_latest_seq?: number;
   is_group: boolean;
   group_name: string | null;
   group_avatar_url: string | null;
@@ -74,6 +77,7 @@ export function sanitizeMessage(msg: Partial<LocalMessage>): LocalMessage {
     created_at:     msg.created_at!,
     updated_at:     msg.updated_at!,
     seq:            msg.seq,
+    created_seq:    msg.created_seq,
     sync_status:    msg.sync_status ?? 'pending',
   } as LocalMessage;
 }

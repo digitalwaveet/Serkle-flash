@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { X, Send, ChevronLeft, ChevronRight } from 'lucide-react';
 import { InlineVideoLoader } from '@/components/ui/VideoLoader';
-import { supabase } from '@/integrations/supabase/client';
+import { uploadChatMedia } from '@/lib/chatMedia';
 import { toast } from 'sonner';
 
 interface MediaPreviewModalProps {
@@ -35,16 +35,10 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
     try {
       // Upload all files first, collect URLs
       const uploadedUrls: string[] = [];
-      const timestamp = Date.now();
       for (let i = 0; i < files.length; i++) {
         setProgress(Math.round(((i) / files.length) * 100));
         const file = files[i];
-        const ext = file.name.split('.').pop();
-        const path = `${conversationId}/${timestamp}_${i}_${Math.random().toString(36).slice(2, 6)}.${ext}`;
-        const { error } = await supabase.storage.from('post-media').upload(path, file);
-        if (error) throw error;
-        const { data } = supabase.storage.from('post-media').getPublicUrl(path);
-        uploadedUrls.push(data.publicUrl);
+        uploadedUrls.push(await uploadChatMedia(conversationId, file, file.name));
       }
 
       // All uploads succeeded, now send messages
@@ -58,8 +52,8 @@ const MediaPreviewModal: React.FC<MediaPreviewModalProps> = ({
       setProgress(100);
       onCaptionConsumed?.();
       onClose();
-    } catch {
-      toast.error(`Failed to send ${mediaType}`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : `Failed to send ${mediaType}`);
     } finally {
       setUploading(false);
     }

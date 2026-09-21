@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import { Play, Download } from 'lucide-react';
+import { useChatMediaUrls } from '@/hooks/useChatMediaUrls';
 
 export interface MediaItem {
   id: string;
@@ -44,7 +45,9 @@ const MediaCell: React.FC<{
   onOpen: (i: number) => void;
   className?: string;
   style?: React.CSSProperties;
-}> = ({ item, index, onOpen, className = '', style }) => {
+}> = ({ item: source, index, onOpen, className = '', style }) => {
+  const media = useChatMediaUrls([source.url]);
+  const item = { ...source, url: media.url(source.url) };
   const [loaded, setLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [duration, setDuration] = useState('');
@@ -69,13 +72,15 @@ const MediaCell: React.FC<{
       onClick={() => onOpen(index)}
     >
       {/* Shimmer skeleton */}
-      {!loaded && (
+      {media.failed(source.url) ? (
+        <button type="button" className="absolute inset-0 z-10 bg-muted px-2 text-sm" onClick={event => { event.stopPropagation(); media.retry(); }}>Attachment unavailable · Retry</button>
+      ) : !loaded && (
         <div className="absolute inset-0 bg-muted flex items-center justify-center"><SerkleLoader size="sm" label="Loading attachment" /></div>
       )}
 
       {item.type === 'photo' ? (
         <img
-          src={item.url}
+          src={item.url || undefined}
           alt=""
           className="w-full h-full object-cover"
           loading="lazy"
@@ -85,7 +90,7 @@ const MediaCell: React.FC<{
         <>
           <video
             ref={videoRef}
-            src={item.url}
+            src={item.url || undefined}
             className="w-full h-full object-cover"
             preload="metadata"
             muted

@@ -2,7 +2,9 @@ import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Send, ArrowLeft, Plus, X, Pencil, Reply, Pin, Check, CheckCheck, Users, Search, ChevronUp, ChevronDown, Clock, AlertCircle } from 'lucide-react';
+import { Send, ArrowLeft, Plus, X, Pencil, Reply, Pin, Users, Search, ChevronUp, ChevronDown } from 'lucide-react';
+import MessageDeliveryStatus from './MessageDeliveryStatus';
+import { useVisibleChatEnd } from '@/hooks/useVisibleChatEnd';
 import { useMessages, useSendMessage, useOtherUserLastRead, useRetryMessage } from '@/hooks/useMessages';
 import { useMessageReactions, useEditMessage, useDeleteMessage, useForwardMessage, usePinnedMessage } from '@/hooks/useMessageActions';
 import { useConversations, Conversation } from '@/hooks/useConversations';
@@ -135,7 +137,8 @@ const ChatView: React.FC<ChatViewProps> = ({
   const prevMessagesCount = useRef(0);
 
 
-  const { messages, isLoading, isSyncing, hasMore, loadMore } = useMessages(conversation.conversation_id, currentUserId);
+  const canMarkRead = useVisibleChatEnd(scrollContainerRef, messagesEndRef, conversation.conversation_id);
+  const { messages, isLoading, isSyncing, hasMore, loadMore, error: syncError, refetch } = useMessages(conversation.conversation_id, currentUserId, canMarkRead);
   const otherUserLastRead = useOtherUserLastRead(conversation.conversation_id, conversation.other_user_id);
   const { sendMessage, isSending } = useSendMessage();
   const retryMessage = useRetryMessage();
@@ -692,7 +695,7 @@ const ChatView: React.FC<ChatViewProps> = ({
   const hasText = messageText.trim().length > 0;
 
   return (
-    <div className="flex flex-col h-screen lg:h-full bg-background">
+    <div className="flex flex-col h-full bg-background">
       {/* Header */}
       <div className="flex-none sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border">
         {!isSearchOpen ? (
@@ -700,8 +703,9 @@ const ChatView: React.FC<ChatViewProps> = ({
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => window.history.back()}
+              onClick={onBack}
               className="lg:hidden -ml-2 h-10 w-10 active:scale-95 transition-transform"
+              aria-label="Back to conversations"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -839,6 +843,12 @@ const ChatView: React.FC<ChatViewProps> = ({
       </div>
 
       {/* Messages */}
+      {syncError && (
+        <div role="alert" className="flex items-center justify-between gap-3 border-b border-border bg-muted px-4 py-2 text-sm">
+          <span>Messages couldn’t refresh. Your saved messages are still available.</span>
+          <Button variant="ghost" disabled={isSyncing} onClick={() => void refetch()}>Retry</Button>
+        </div>
+      )}
       <div 
         ref={scrollContainerRef}
         onScroll={handleScroll}
@@ -960,6 +970,19 @@ const ChatView: React.FC<ChatViewProps> = ({
                           ) : null;
                         })()}
                       </div>
+                      {isOwn && (
+                        <div className="mt-1 flex flex-wrap items-center gap-2 px-1 text-xs text-muted-foreground" aria-label="Attachment send statuses">
+                          {msgs.map((item, index) => (
+                            <span key={item.id} className="inline-flex items-center gap-1">
+                              <span className="sr-only">Attachment {index + 1}: </span>
+                              <MessageDeliveryStatus syncStatus={item.sync_status} seq={item.seq}
+                                lastReadSeq={conversation.is_group ? 0 : otherUserLastRead}
+                                retrying={retryMessage.isPending}
+                                onRetry={() => retryMessage.mutate(item.id)} />
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
                     {isOwn && (
                       <Avatar className="h-8 w-8 shrink-0 mt-1">
@@ -1109,20 +1132,10 @@ const ChatView: React.FC<ChatViewProps> = ({
                   <span className="text-xs text-muted-foreground mt-1 px-1 flex items-center gap-1">
                     {formatDistanceToNow(new Date(message.created_at), { addSuffix: true })}
                     {isOwn && (
-                      message.sync_status === 'pending'
-                        ? <Clock className="h-3.5 w-3.5 text-muted-foreground/50" />
-                        : message.sync_status === 'sending'
-                          ? <SerkleLoader size="xs" className="text-primary" />
-                          : message.sync_status === 'failed'
-                            ? <div className="flex items-center gap-1 group cursor-pointer" onClick={(e) => { e.stopPropagation(); retryMessage.mutate(message.id); }}>
-                                <AlertCircle className="h-3.5 w-3.5 text-destructive" />
-                                <span className="text-[10px] text-destructive font-medium hidden group-hover:inline">Retry</span>
-                              </div>
-                            : (otherUserLastRead && message.seq && otherUserLastRead >= message.seq)
-                              ? <CheckCheck className="h-3.5 w-3.5 text-primary" /> // Colored = READ
-                              : (message.sync_status === 'delivered' || message.seq)
-                                ? <CheckCheck className="h-3.5 w-3.5 text-muted-foreground/40" /> // Grey = DELIVERED
-                                : <Check className="h-3.5 w-3.5 text-muted-foreground/60" /> // Single = SENT
+                      <MessageDeliveryStatus syncStatus={message.sync_status} seq={message.seq}
+                        lastReadSeq={conversation.is_group ? 0 : otherUserLastRead}
+                        retrying={retryMessage.isPending}
+                        onRetry={() => retryMessage.mutate(message.id)} />
                     )}
                   </span>
                 </div>
@@ -1140,7 +1153,7 @@ const ChatView: React.FC<ChatViewProps> = ({
             );
           })
         )}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} className="h-px" aria-hidden="true" />
       </div>
     </div>
 

@@ -97,11 +97,11 @@ const Messages = () => {
         </div>
       )}
 
-      {/* Desktop Layout */}
-      <div className="hidden lg:flex h-screen">
+      {/* One responsive tree: never mount a second hidden chat/subscription. */}
+      <div className="flex h-dvh">
         {/* Conversations List */}
-        <div className="w-96 border-r border-border bg-background">
-          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border px-4 py-4 flex items-center justify-between">
+        <div className={`${selectedConversation ? 'hidden lg:block' : 'block'} w-full lg:w-96 lg:shrink-0 lg:border-r border-border bg-background`}>
+          <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg border-b border-border px-4 py-4 hidden lg:flex items-center justify-between">
             <h1 className="text-xl font-bold">Messages</h1>
             <button
               onClick={handleOpenCreateGroup}
@@ -120,9 +120,10 @@ const Messages = () => {
         </div>
 
         {/* Chat View */}
-        <div className="flex-1">
+        <div className={`${selectedConversation ? 'block' : 'hidden lg:block'} min-w-0 flex-1`}>
           {selectedConversation ? (
             <ChatView
+              key={selectedConversation.conversation_id}
               conversation={selectedConversation}
               currentUserId={user.id}
               currentUserAvatar={user.avatar}
@@ -141,28 +142,6 @@ const Messages = () => {
             </div>
           )}
         </div>
-      </div>
-
-      {/* Mobile Layout */}
-      <div className="lg:hidden h-screen flex flex-col">
-        {selectedConversation ? (
-            <ChatView
-              conversation={selectedConversation}
-              currentUserId={user.id}
-              currentUserAvatar={user.avatar}
-              currentUserInitials={user.initials}
-              currentUserName={user.name}
-              onBack={handleBack}
-            />
-        ) : (
-          <ConversationsList
-            conversations={conversations}
-            selectedConversationId={selectedConversationId || null}
-            onSelectConversation={handleSelectConversation}
-            isLoading={isLoading}
-            currentUserId={user.id}
-          />
-        )}
       </div>
 
       <CreateGroupModal

@@ -1,5 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 import { chatDb, LocalMessage, sanitizeMessage } from './db';
+import { countUnreadMessages } from './chatUnread';
 
 // Concurrency guards for synchronization
 const syncRegistry = new Map<string, Promise<any>>();
@@ -56,8 +57,7 @@ export const syncConversation = async (conversationId: string) => {
       ]);
  
       if (msgError) {
-        console.error('Delta sync failed:', msgError);
-        return;
+        throw msgError;
       }
  
       // 2. Process Reactions (Strip join metadata)
@@ -86,7 +86,10 @@ export const syncConversation = async (conversationId: string) => {
             forwarded_from_name: msg.forwarded_from_name,
             created_at: msg.created_at,
             updated_at: msg.updated_at,
+            is_edited: msg.is_edited,
+            deleted_for_everyone: msg.deleted_for_everyone,
             seq: Number(msg.seq),
+            created_seq: Number(msg.created_seq ?? msg.seq),
             sync_status: 'sent'
           });
  
@@ -128,13 +131,17 @@ export const syncConversation = async (conversationId: string) => {
         });
  
         if (receipts && receipts.length > 0) {
-          // bulkPut will now correctly update based on [conversation_id, user_id] composite primary key
-          await chatDb.read_receipts.bulkPut(receipts.map(r => ({
-            user_id: r.user_id,
-            conversation_id: r.conversation_id,
-            last_read_seq: r.last_read_seq,
-            updated_at: r.updated_at
-          })));
+          for (const receipt of receipts) {
+            const current = await chatDb.read_receipts.get([receipt.conversation_id, receipt.user_id]);
+            if (!current || receipt.last_read_seq > current.last_read_seq) {
+              await chatDb.read_receipts.put({
+                user_id: receipt.user_id,
+                conversation_id: receipt.conversation_id,
+                last_read_seq: receipt.last_read_seq,
+                updated_at: receipt.updated_at
+              });
+            }
+          }
         }
  
         if (reactionsToInsert.length > 0) {
@@ -150,6 +157,7 @@ export const syncConversation = async (conversationId: string) => {
       return messagesToInsert.length;
     } catch (err) {
       console.error('Error during chat sync:', err);
+      throw err;
     } finally {
       syncRegistry.delete(conversationId);
     }
@@ -179,25 +187,36 @@ export const syncConversations = async (userId: string) => {
       }
 
       if (data && data.length > 0) {
+        const receipts = await chatDb.read_receipts.toArray();
+        const localReads = Object.fromEntries(receipts.filter(r => r.user_id === userId).map(r => [r.conversation_id, r.last_read_seq]));
+        const { data: unreadRows, error: unreadError } = await (supabase.rpc as any)('get_chat_unread_counts', { p_local_reads: localReads });
+        if (unreadError && unreadError.code !== 'PGRST202' && unreadError.code !== '42883') throw unreadError;
+        const unreadMap = new Map<string, { unread_count: number; last_read_seq: number; latest_seq: number }>(
+          (unreadRows || []).map(row => [row.conversation_id, row])
+        );
         // Use a transaction to safely merge server data with local state
-        await chatDb.transaction('rw', chatDb.conversations_meta, async () => {
+        await chatDb.transaction('rw', chatDb.conversations_meta, chatDb.read_receipts, chatDb.sync_queue, chatDb.messages, async () => {
           for (const serverConv of data) {
             const localConv = await chatDb.conversations_meta.get(serverConv.conversation_id);
             
-            // OPTIMISTIC PRESERVATION:
-            // If we have a local record and the server is telling us there are unread messages,
-            // but we recently marked it as read (unread_count === 0 locally), 
-            // we trust our local state until the server syncs up.
-            if (localConv && localConv.unread_count === 0 && serverConv.unread_count > 0) {
-              // Keep local zero unread count
-              await chatDb.conversations_meta.put({
-                ...serverConv,
-                unread_count: 0
-              });
-            } else {
-              // Otherwise, take server data
-              await chatDb.conversations_meta.put(serverConv);
+            const stats = unreadMap.get(serverConv.conversation_id);
+            const receipt = await chatDb.read_receipts.get([serverConv.conversation_id, userId]);
+            const pending = await chatDb.sync_queue.get(`read_${serverConv.conversation_id}_${userId}`);
+            const readSeq = Math.max(receipt?.last_read_seq || 0, Number(stats?.last_read_seq || 0));
+            if (stats && readSeq > (receipt?.last_read_seq || 0)) {
+              await chatDb.read_receipts.put({ conversation_id: serverConv.conversation_id, user_id: userId, last_read_seq: readSeq, updated_at: new Date().toISOString() });
             }
+            const staleRead = stats ? readSeq > Number(stats.last_read_seq) : !!pending;
+            const newerEvent = stats && (localConv?.unread_latest_seq || 0) > Number(stats.latest_seq);
+            const localRows = staleRead ? await chatDb.messages.where('conversation_id').equals(serverConv.conversation_id).toArray() : [];
+            await chatDb.conversations_meta.put({
+              ...serverConv,
+              ...(newerEvent && localConv ? { last_message: localConv.last_message, last_message_at: localConv.last_message_at, last_message_sender_id: localConv.last_message_sender_id } : {}),
+              unread_count: staleRead ? countUnreadMessages(localRows, userId, readSeq)
+                : newerEvent ? localConv.unread_count : Number(stats?.unread_count ?? serverConv.unread_count),
+              unread_read_seq: readSeq,
+              unread_latest_seq: Math.max(localConv?.unread_latest_seq || 0, Number(stats?.latest_seq || 0)),
+            });
           }
         });
       }
@@ -271,7 +290,24 @@ export const togglePinnedConversation = async (userId: string, conversationId: s
   })();
 };
 
-export async function processSyncQueue() {
+let queueRun: Promise<void> | null = null;
+let queueRequested = false;
+
+export function processSyncQueue(): Promise<void> {
+  if (typeof navigator !== 'undefined' && !navigator.onLine) return Promise.resolve();
+  queueRequested = true;
+  if (!queueRun) {
+    queueRun = (async () => {
+      do {
+        queueRequested = false;
+        await processSyncQueueBatch();
+      } while (queueRequested);
+    })().finally(() => { queueRun = null; });
+  }
+  return queueRun;
+}
+
+async function processSyncQueueBatch() {
   const queue = await chatDb.sync_queue.toArray();
   if (queue.length === 0) return;
  
@@ -300,6 +336,8 @@ export async function processSyncQueue() {
     try {
       // Mark batch as processing
       await chatDb.sync_queue.where('id').anyOf(batchIds).modify({ status: 'processing' });
+      const sendingMessages = await chatDb.messages.where('id').anyOf(messageIds).toArray();
+      await chatDb.messages.bulkPut(sendingMessages.map(msg => ({ ...msg, sync_status: 'sending' as const })));
  
       const { error } = await supabase
         .from('messages')
@@ -311,7 +349,7 @@ export async function processSyncQueue() {
       await chatDb.transaction('rw', chatDb.messages, chatDb.sync_queue, async () => {
         const msgsToUpdate = await chatDb.messages.where('id').anyOf(messageIds).toArray();
         for (const msg of msgsToUpdate) {
-          msg.sync_status = 'delivered';
+          msg.sync_status = 'sent';
         }
         await chatDb.messages.bulkPut(msgsToUpdate);
         await chatDb.sync_queue.bulkDelete(batchIds);
@@ -334,6 +372,8 @@ export async function processSyncQueue() {
             }
             await chatDb.sync_queue.delete(item.id);
           } else {
+            const existingMsg = await chatDb.messages.get(item.payload.id);
+            if (existingMsg) await chatDb.messages.put({ ...existingMsg, sync_status: 'failed' });
             // Incremental failure: update queue item
             await chatDb.sync_queue.update(item.id, {
               status: 'pending',
@@ -364,7 +404,13 @@ export async function processSyncQueue() {
           .upsert(receiptPayload, { onConflict: 'conversation_id,user_id' });
  
         if (error) throw error;
-        await chatDb.sync_queue.delete(item.id);
+        // A newer read may have replaced this entry while the request was in flight.
+        await chatDb.transaction('rw', chatDb.sync_queue, async () => {
+          const latest = await chatDb.sync_queue.get(item.id);
+          if (latest && latest.payload.last_read_seq <= item.payload.last_read_seq) {
+            await chatDb.sync_queue.delete(item.id);
+          }
+        });
       } else if (item.type === 'story_view') {
         const { error } = await supabase.from('story_views').insert(item.payload);
         if (error && error.code !== '23505') throw error; // Ignore duplicate views

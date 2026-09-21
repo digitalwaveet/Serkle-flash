@@ -1,7 +1,7 @@
 import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { Mic, X, Lock, Send } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { uploadChatMedia } from '@/lib/chatMedia';
 import { toast } from 'sonner';
 
 interface VoiceRecorderProps {
@@ -96,13 +96,10 @@ const VoiceRecorder: React.FC<VoiceRecorderProps> = ({ conversationId, onSend })
     try {
       const fileName = `voice_${Date.now()}.${mime.ext}`;
       const file = new File([blob], fileName, { type: mime.mimeType || 'audio/webm' });
-      const path = `${conversationId}/${Date.now()}_voice.${mime.ext}`;
-      const { error } = await supabase.storage.from('post-media').upload(path, file);
-      if (error) throw error;
-      const { data } = supabase.storage.from('post-media').getPublicUrl(path);
-      onSend('voice', data.publicUrl, `🎤 Voice (${durationSec}s)`);
-    } catch {
-      toast.error('Failed to send voice message');
+      const reference = await uploadChatMedia(conversationId, file, fileName);
+      onSend('voice', reference, `🎤 Voice (${durationSec}s)`);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to send voice message');
     } finally {
       setUploading(false);
     }

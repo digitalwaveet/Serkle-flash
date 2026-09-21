@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { chatDb } from '@/lib/db';
 import { Message } from './useMessages';
+import { copyChatMediaToConversation } from '@/lib/chatMedia';
 
 export const useMessageReactions = (conversationId: string | null) => {
   const queryClient = useQueryClient();
@@ -81,23 +82,33 @@ export const useEditMessage = () => {
 
   return useMutation({
     mutationFn: async ({ messageId, content, conversationId }: { messageId: string; content: string; conversationId: string }) => {
-      // 1. Optimistic local update
+      // Keep a snapshot so a rejected edit does not remain visible as saved.
       const existingEdit = await chatDb.messages.get(messageId);
+      const previous = existingEdit ? { ...existingEdit } : null;
+      const editedAt = new Date().toISOString();
       if (existingEdit) {
         existingEdit.content = content;
         existingEdit.is_edited = true;
-        existingEdit.updated_at = new Date().toISOString();
+        existingEdit.updated_at = editedAt;
         await chatDb.messages.put(existingEdit);
       }
 
-      // 2. Server update
-      const { error } = await supabase
-        .from('messages')
-        .update({ content, is_edited: true, updated_at: new Date().toISOString() })
-        .eq('id', messageId);
-      if (error) {
-        // Optional: rollback on error? For now, we rely on the next sync to fix it
-        console.error('Failed to update server, local state might be inconsistent:', error);
+      try {
+        const { error } = await supabase
+          .from('messages')
+          .update({ content, is_edited: true, updated_at: editedAt })
+          .eq('id', messageId)
+          .select('id')
+          .single();
+        if (error) throw error;
+      } catch (error) {
+        await chatDb.transaction('rw', chatDb.messages, async () => {
+          const current = await chatDb.messages.get(messageId);
+          // Do not roll back a newer edit or a deletion that arrived meanwhile.
+          if (previous && current?.updated_at === editedAt && current.content === content && !current.deleted_for_everyone) {
+            await chatDb.messages.put(previous);
+          }
+        });
         throw error;
       }
       return conversationId;
@@ -171,14 +182,19 @@ export const useForwardMessage = () => {
       targetConversationIds: string[];
       senderId: string;
     }) => {
-      const inserts = targetConversationIds.map(convId => ({
+      const isFile = ['photo', 'video', 'voice', 'audio', 'file', 'document', 'pdf'].includes(messageType);
+      // Bound memory/network use when forwarding large files to many chats.
+      const inserts = [];
+      for (const convId of [...new Set(targetConversationIds)]) {
+        inserts.push({
         conversation_id: convId,
         sender_id: senderId,
         content,
         message_type: messageType,
-        attachment_url: attachmentUrl || null,
+        attachment_url: attachmentUrl && isFile ? await copyChatMediaToConversation(attachmentUrl, convId) : attachmentUrl || null,
         forwarded_from_name: senderName,
-      }));
+        });
+      }
 
       const { error } = await supabase.from('messages').insert(inserts);
       if (error) throw error;
@@ -188,7 +204,7 @@ export const useForwardMessage = () => {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       toast.success('Message forwarded');
     },
-    onError: () => toast.error('Failed to forward message'),
+    onError: error => toast.error(error instanceof Error ? error.message : 'Failed to forward message'),
   });
 };
 

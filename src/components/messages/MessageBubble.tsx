@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Download, MapPin, Play, Pause, ExternalLink, Image as ImageIcon, Film } from 'lucide-react';
 import { useNavigation } from '@/contexts/NavigationContext';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useChatMediaUrls } from '@/hooks/useChatMediaUrls';
 
 const URL_REGEX = /(https?:\/\/[^\s<]+[^\s<.,;:!?)"'\]])/g;
 
@@ -42,7 +43,14 @@ interface MessageBubbleProps {
   onInvitationClick?: (invitationId: string) => void;
 }
 
-const MessageBubble: React.FC<MessageBubbleProps> = ({ content, messageType, attachmentUrl, isOwn, onInvitationClick }) => {
+const MessageBubble: React.FC<MessageBubbleProps> = ({ content, messageType, attachmentUrl: reference, isOwn, onInvitationClick }) => {
+  const media = useChatMediaUrls([reference]);
+  const attachmentUrl = media.url(reference);
+  if (reference?.startsWith('chat-media://') && !attachmentUrl) {
+    return media.failed(reference)
+      ? <button type="button" onClick={media.retry} className="min-h-11 px-3 text-sm">Attachment unavailable · Retry</button>
+      : <SerkleLoader size="sm" label="Loading private attachment" />;
+  }
   if (messageType === 'text' || !attachmentUrl) {
     const invitationMatch = content.match(/\[([^\]]+)\]\(circle-invitation:([a-f0-9-]+)\)/);
     if (invitationMatch) {

@@ -13,6 +13,7 @@ import { CustomFilePicker } from '@/components/CustomFilePicker';
 import { useQueryClient } from '@tanstack/react-query';
 import FriendPicker from '@/components/circles/FriendPicker';
 import { useGroupMembers, useGroupInfo, useGroupMute, useSharedMedia, useGroupPolls } from '@/hooks/useGroupManagement';
+import { useChatMediaUrls } from '@/hooks/useChatMediaUrls';
 
 /* ─────── Premium Dark Theme Styles ─────── */
 const groupModalStyles = `
@@ -279,6 +280,7 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
   const { groupInfo, updateDescription, updateAvatar, updateName } = useGroupInfo(conversationId, isOpen);
   const { isMuted, mute, unmute } = useGroupMute(conversationId, currentUserId);
   const { data: sharedMedia = [] } = useSharedMedia(conversationId, isOpen);
+  const privateMedia = useChatMediaUrls(sharedMedia.map(item => item.attachment_url), isOpen);
   const { polls, createPoll, endPoll, vote, unvote } = useGroupPolls(conversationId, currentUserId, isOpen);
 
   const resolvedCreatedBy = groupInfo?.created_by || createdBy;
@@ -614,10 +616,14 @@ const GroupInfoModal: React.FC<GroupInfoModalProps> = ({
                 <div className="grid grid-cols-3 gap-1" style={{ overflow: 'hidden' }}>
                   {sharedMedia.map((item: any) => (
                     <div key={item.id} className="g-media-cell aspect-square">
-                      {item.message_type?.startsWith('video') ? (
-                        <video src={item.attachment_url} className="w-full h-full object-cover" />
+                      {privateMedia.failed(item.attachment_url) ? (
+                        <button type="button" onClick={privateMedia.retry} className="min-h-11 text-xs">Unavailable · Retry</button>
+                      ) : !privateMedia.url(item.attachment_url) ? (
+                        <SerkleLoader size="sm" label="Loading private attachment" />
+                      ) : item.message_type?.startsWith('video') ? (
+                        <video src={privateMedia.url(item.attachment_url)} className="w-full h-full object-cover" />
                       ) : (
-                        <img src={item.attachment_url} className="w-full h-full object-cover" alt="" loading="lazy" />
+                        <img src={privateMedia.url(item.attachment_url)} className="w-full h-full object-cover" alt="" loading="lazy" />
                       )}
                     </div>
                   ))}

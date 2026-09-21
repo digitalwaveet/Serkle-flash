@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Image, Camera, Video, FileText, MapPin, User, X } from 'lucide-react';
 import { InlineVideoLoader } from '@/components/ui/VideoLoader';
-import { supabase } from '@/integrations/supabase/client';
+import { uploadChatMedia } from '@/lib/chatMedia';
 import { toast } from 'sonner';
 import { CustomFilePicker, useFileManager } from '@/components/CustomFilePicker';
 import { useEffect } from 'react';
@@ -66,17 +66,13 @@ const TelegramAttachmentSheet: React.FC<TelegramAttachmentSheetProps> = ({
     const item = fileManager.files[0];
     if (item) {
       const handleFile = async (file: File) => {
-        onClose();
         setUploading(true);
         try {
-          const ext = file.name.split('.').pop();
-          const path = `${conversationId}/${Date.now()}.${ext}`;
-          const { error } = await supabase.storage.from('post-media').upload(path, file);
-          if (error) throw error;
-          const { data } = supabase.storage.from('post-media').getPublicUrl(path);
-          onSendAttachment('file', data.publicUrl, `📎 ${file.name}`);
-        } catch {
-          toast.error('Failed to upload file');
+          const reference = await uploadChatMedia(conversationId, file, file.name);
+          onSendAttachment('file', reference, `📎 ${file.name}`);
+          onClose();
+        } catch (error) {
+          toast.error(error instanceof Error ? error.message : 'Failed to upload file');
         } finally {
           setUploading(false);
           fileManager.clearAll();

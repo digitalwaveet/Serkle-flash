@@ -1,10 +1,9 @@
 import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useRef } from 'react';
 import { Paperclip, Camera, Image, Video, Mic, MapPin, X } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { uploadChatMedia } from '@/lib/chatMedia';
 import { toast } from 'sonner';
 import { CustomFilePicker, useFileManager } from '@/components/CustomFilePicker';
-import { useUpdateMessage } from '@/hooks/useMessages';
 
 interface ChatAttachmentMenuProps {
   conversationId: string;
@@ -21,7 +20,6 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
   const [uploading, setUploading] = useState(false);
   const [recording, setRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
-  const { mutate: updateMessage } = useUpdateMessage();
   
   const photoManager = useFileManager();
   const videoManager = useFileManager();
@@ -33,11 +31,7 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
 
   const uploadFile = async (file: File | Blob, folder: string): Promise<string> => {
     const ext = folder === 'voice' ? 'webm' : (file as File).name?.split('.').pop() || 'tmp';
-    const path = `${conversationId}/${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from('post-media').upload(path, file);
-    if (error) throw error;
-    const { data } = supabase.storage.from('post-media').getPublicUrl(path);
-    return data.publicUrl;
+    return uploadChatMedia(conversationId, file, (file as File).name || `attachment.${ext}`);
   };
 
   // Photo processing
@@ -46,15 +40,9 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
     if (item) {
       const process = async () => {
         setOpen(false);
-        const localUrl = item.url;
-        const messageId = crypto.randomUUID();
-
-        // Optimistic send
-        onSendAttachment('photo', localUrl, '📷 Photo', messageId);
-
         try {
           const url = await uploadFile(item.file, 'photos');
-          updateMessage({ messageId, attachmentUrl: url });
+          onSendAttachment('photo', url, '📷 Photo');
         } catch (error) {
           console.error('[Upload] Photo failed:', error);
           toast.error('Failed to upload photo');
@@ -64,7 +52,7 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
       };
       process();
     }
-  }, [photoManager.files, onSendAttachment, updateMessage]);
+  }, [photoManager.files, onSendAttachment]);
 
   // Video processing
   useEffect(() => {
@@ -72,15 +60,9 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
     if (item) {
       const process = async () => {
         setOpen(false);
-        const localUrl = item.url;
-        const messageId = crypto.randomUUID();
-
-        // Optimistic send
-        onSendAttachment('video', localUrl, '🎥 Video', messageId);
-
         try {
           const url = await uploadFile(item.file, 'videos');
-          updateMessage({ messageId, attachmentUrl: url });
+          onSendAttachment('video', url, '🎥 Video');
         } catch (error) {
           console.error('[Upload] Video failed:', error);
           toast.error('Failed to upload video');
@@ -90,7 +72,7 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
       };
       process();
     }
-  }, [videoManager.files, onSendAttachment, updateMessage]);
+  }, [videoManager.files, onSendAttachment]);
 
   // Camera processing
   useEffect(() => {
@@ -98,15 +80,9 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
     if (item) {
       const process = async () => {
         setOpen(false);
-        const localUrl = item.url;
-        const messageId = crypto.randomUUID();
-
-        // Optimistic send
-        onSendAttachment('photo', localUrl, '📷 Photo', messageId);
-
         try {
           const url = await uploadFile(item.file, 'photos');
-          updateMessage({ messageId, attachmentUrl: url });
+          onSendAttachment('photo', url, '📷 Photo');
         } catch (error) {
           console.error('[Upload] Camera failed:', error);
           toast.error('Failed to upload photo');
@@ -116,7 +92,7 @@ const ChatAttachmentMenu: React.FC<ChatAttachmentMenuProps> = ({
       };
       process();
     }
-  }, [cameraManager.files, onSendAttachment, updateMessage]);
+  }, [cameraManager.files, onSendAttachment]);
 
   const startRecording = async () => {
     try {

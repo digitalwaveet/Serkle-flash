@@ -10,6 +10,8 @@ import {
 import { format, differenceInYears } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
+import { useChatMediaUrls } from '@/hooks/useChatMediaUrls';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
 
 /* ─────────── CSS Keyframes & Styles ─────────── */
 const modalStyles = `
@@ -211,7 +213,7 @@ interface ChatMediaGalleryModalProps {
 const ChatMediaGalleryModal: React.FC<ChatMediaGalleryModalProps> = ({
     isOpen,
     onClose,
-    messages,
+    messages: sourceMessages,
     profileName,
     profileAvatar,
     profileInitials,
@@ -223,6 +225,8 @@ const ChatMediaGalleryModal: React.FC<ChatMediaGalleryModalProps> = ({
     onMediaSelect,
     conversationId
 }) => {
+    const privateMedia = useChatMediaUrls(sourceMessages.map(message => message.attachment_url), isOpen);
+    const messages = sourceMessages.map(message => ({ ...message, attachment_ref: message.attachment_url, attachment_url: privateMedia.url(message.attachment_url) }));
     const [activeTab, setActiveTab] = useState<TabKey>('photos');
     const [playingVoiceId, setPlayingVoiceId] = useState<string | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -451,6 +455,14 @@ const ChatMediaGalleryModal: React.FC<ChatMediaGalleryModalProps> = ({
                 <style dangerouslySetInnerHTML={{ __html: modalStyles }} />
 
                 <div className="profile-modal-card">
+                    {sourceMessages.some(message => message.attachment_url?.startsWith('chat-media://') && !privateMedia.url(message.attachment_url) && !privateMedia.failed(message.attachment_url)) && (
+                        <div className="flex justify-center p-3"><SerkleLoader size="sm" dark label="Loading private attachments" /></div>
+                    )}
+                    {sourceMessages.some(message => privateMedia.failed(message.attachment_url)) && (
+                        <button type="button" className="min-h-11 w-full px-4 text-sm text-[#FFE2BE]" onClick={privateMedia.retry}>
+                            Some attachments are unavailable · Retry
+                        </button>
+                    )}
                     {/* ─── Header ─── */}
                     <div
                         className="relative overflow-hidden"
@@ -581,7 +593,7 @@ const ChatMediaGalleryModal: React.FC<ChatMediaGalleryModalProps> = ({
                                     {categorisedItems.photos.map((msg) => (
                                         <div
                                             key={msg.id}
-                                            onClick={() => onMediaSelect?.(msg.attachment_url, 'photo')}
+                                            onClick={() => onMediaSelect?.(msg.attachment_ref, 'photo')}
                                             className="media-grid-cell aspect-square rounded-md"
                                             style={{ background: '#3a2212' }}
                                             {...longPressProps(msg.id, msg.conversation_id, 'photo')}
@@ -600,7 +612,7 @@ const ChatMediaGalleryModal: React.FC<ChatMediaGalleryModalProps> = ({
                                     {categorisedItems.videos.map((msg) => (
                                         <div
                                             key={msg.id}
-                                            onClick={() => onMediaSelect?.(msg.attachment_url, 'video')}
+                                            onClick={() => onMediaSelect?.(msg.attachment_ref, 'video')}
                                             className="media-grid-cell aspect-square rounded-md"
                                             style={{ background: '#3a2212' }}
                                             {...longPressProps(msg.id, msg.conversation_id, 'video')}

@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isActiveMute } from '@/lib/messageStatus';
 
 // ─── Members & Admins ───
 export const useGroupMembers = (conversationId: string, isOpen: boolean) => {
@@ -172,17 +173,17 @@ export const useGroupMute = (conversationId: string, userId: string) => {
   const { data: muteStatus } = useQuery({
     queryKey: ['group-mute', conversationId, userId],
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('group_mutes')
         .select('muted_until')
         .eq('conversation_id', conversationId)
         .eq('user_id', userId)
         .maybeSingle();
-      if (!data) return null;
-      if (data.muted_until && new Date(data.muted_until) < new Date()) return null;
-      return data.muted_until;
+      if (error) throw error;
+      return data;
     },
     enabled: !!userId,
+    refetchInterval: 60000,
   });
 
   const mute = useMutation({
@@ -201,6 +202,7 @@ export const useGroupMute = (conversationId: string, userId: string) => {
       queryClient.invalidateQueries({ queryKey: ['group-mute', conversationId, userId] });
       toast.success('Notifications muted');
     },
+    onError: () => toast.error('Could not mute notifications. Please try again.'),
   });
 
   const unmute = useMutation({
@@ -212,9 +214,10 @@ export const useGroupMute = (conversationId: string, userId: string) => {
       queryClient.invalidateQueries({ queryKey: ['group-mute', conversationId, userId] });
       toast.success('Notifications unmuted');
     },
+    onError: () => toast.error('Could not unmute notifications. Please try again.'),
   });
 
-  return { isMuted: muteStatus !== null && muteStatus !== undefined, muteStatus, mute, unmute };
+  return { isMuted: isActiveMute(muteStatus), muteStatus: muteStatus?.muted_until, mute, unmute };
 };
 
 // ─── Shared Media ───
