@@ -57,6 +57,56 @@ export const useNotifications = () => {
     },
   });
 
+  const markAllAsRead = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('push_notifications')
+        .update({ read_at: new Date().toISOString() })
+        .eq('user_id', user.id)
+        .is('read_at', null);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['push-notifications'] });
+    },
+  });
+
+  const deleteNotification = useMutation({
+    mutationFn: async (notificationIds: string | string[]) => {
+      const ids = Array.isArray(notificationIds) ? notificationIds : [notificationIds];
+      const { error } = await supabase
+        .from('push_notifications')
+        .delete()
+        .in('id', ids);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['push-notifications'] });
+    },
+  });
+
+  const clearAllNotifications = useMutation({
+    mutationFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { error } = await supabase
+        .from('push_notifications')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['push-notifications'] });
+    },
+  });
+
   // Realtime is handled globally by GlobalRealtimeListener
 
   const unreadCount = notifications?.filter(n => !n.read_at).length || 0;
@@ -66,6 +116,9 @@ export const useNotifications = () => {
     isLoading,
     unreadCount,
     markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    clearAllNotifications,
     markConversationNotificationsAsRead,
     error,
   };

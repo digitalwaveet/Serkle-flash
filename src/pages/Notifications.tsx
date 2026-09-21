@@ -1,83 +1,78 @@
-import { SerkleLoader } from '@/components/ui/SerkleLoader';
-import React, { useState, useEffect } from 'react';
-import { ArrowLeft, Check, Trash2, Heart, MessageCircle, UserPlus, Video, CheckCheck, AtSign, Users, HelpCircle, Bell, BellOff } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
-import FooterNav from '@/components/FooterNav';
-import { useNotifications } from '@/hooks/useNotifications';
-import { formatDistanceToNow } from 'date-fns';
-import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
-import { useSwipeGestures } from '@/hooks/useSwipeGestures';
+import { supabase } from '@/integrations/supabase/client';
+import { useNotifications } from '@/hooks/useNotifications';
+import {
+  filterByCategory,
+  batchNotifications,
+  groupByTime,
+  getNotificationNavTarget,
+  TimeGroup,
+} from '@/utils/notificationHelpers';
+import NotificationItem from '@/components/notifications/NotificationItem';
+import NotificationGroupItem from '@/components/notifications/NotificationGroupItem';
+import NotificationSettingsModal from '@/components/notifications/NotificationSettingsModal';
+import { SerkleLoader } from '@/components/ui/SerkleLoader';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import FooterNav from '@/components/FooterNav';
+import GenericEmptyState from '@/components/ui/empty-state';
+import {
+  ArrowLeft, CheckCheck, Trash2, Settings,
+  Sparkles, Bell
+} from 'lucide-react';
 import { toast } from 'sonner';
 
-import GenericEmptyState from '@/components/ui/empty-state';
+const CATEGORIES = [
+  { id: 'all', label: 'All' },
+  { id: 'unread', label: 'Unread' },
+  { id: 'social', label: 'Social' },
+  { id: 'circles', label: 'Circles' },
+  { id: 'shop', label: 'Shop' },
+  { id: 'safety', label: 'Safety' },
+  { id: 'messages', label: 'Messages' },
+];
 
-// ─── Notification type helpers ──────────────────────────────────────
-
-type NotifType =
-  | 'like' | 'comment' | 'follow' | 'mention'
-  | 'new_post' | 'new_video' | 'story_mention'
-  | 'live_start'
-  | 'circle_member' | 'circle_post' | 'circle_event'
-  | 'question_answer' | 'answer_vote'
-  | 'event' | 'reward';
-
-const ICON_MAP: Record<string, typeof Heart> = {
-  like: Heart,
-  comment: MessageCircle,
-  follow: UserPlus,
-  new_post: MessageCircle,
-  new_video: Video,
-  story_mention: AtSign,
-  mention: AtSign,
-  live_start: Video,
-  circle_member: Users,
-  circle_post: Users,
-  circle_event: Users,
-  question_answer: HelpCircle,
-  answer_vote: HelpCircle,
-};
-
-const COLOR_MAP: Record<string, string> = {
-  like: 'bg-destructive/15 text-destructive',
-  comment: 'bg-primary/15 text-primary',
-  follow: 'bg-success/20 text-success',
-  new_post: 'bg-secondary/15 text-secondary',
-  new_video: 'bg-accent text-accent-foreground',
-  story_mention: 'bg-secondary/15 text-secondary',
-  mention: 'bg-secondary/15 text-secondary',
-  live_start: 'bg-destructive/15 text-destructive',
-  circle_member: 'bg-primary/15 text-primary',
-  circle_post: 'bg-primary/15 text-primary',
-  circle_event: 'bg-primary/15 text-primary',
-  question_answer: 'bg-tertiary text-tertiary-foreground',
-  answer_vote: 'bg-tertiary text-tertiary-foreground',
-};
-
-const isSocial = (t: string) => ['like', 'comment', 'follow', 'new_post', 'new_video', 'story_mention', 'mention', 'live_start'].includes(t);
-const isCircle = (t: string) => ['circle_member', 'circle_post', 'circle_event'].includes(t);
-const isMention = (t: string) => ['story_mention', 'mention'].includes(t);
-
-// ─── Main component ─────────────────────────────────────────────────
-
-const Notifications = () => {
+const Notifications: React.FC = () => {
   const navigate = useNavigate();
-  const { notifications: dbNotifications, isLoading, unreadCount, markAsRead } = useNotifications();
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
   const [reshareDialog, setReshareDialog] = useState<{ storyId: string; mentionerName: string } | null>(null);
   const [isResharing, setIsResharing] = useState(false);
 
-  // Fetch only referenced profiles
-  const profileIds = Array.from(new Set(
-    dbNotifications.map(n => (n.data as any)?.userId).filter(Boolean) as string[]
-  ));
+  const {
+    notifications,
+    isLoading,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    clearAllNotifications,
+  } = useNotifications();
+
+  // Referenced profiles for avatars
+  const profileIds = useMemo(() => {
+    const ids = new Set<string>();
+    notifications.forEach((n) => {
+      const uid = (n.data as any)?.userId || (n.data as any)?.senderId;
+      if (uid) ids.add(uid);
+    });
+    return Array.from(ids);
+  }, [notifications]);
 
   const { data: profiles } = useQuery({
-    queryKey: ['notification-profiles', profileIds.join(',')],
+    queryKey: ['notifications-page-profiles', profileIds.join(',')],
     queryFn: async () => {
       if (profileIds.length === 0) return [];
       const { data } = await supabase
@@ -90,126 +85,67 @@ const Notifications = () => {
     enabled: profileIds.length > 0,
   });
 
-  const getProfile = (userId: string) => profiles?.find(p => p.id === userId);
+  const getProfile = (userId: string) => profiles?.find((p) => p.id === userId);
 
-  // Realtime for mentions
+  // Realtime notification for mentions
   useEffect(() => {
     const channel = supabase
-      .channel('notification-mentions')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'push_notifications' }, (payload) => {
-        const n = payload.new as any;
-        if (n && isMention(n.notification_type)) {
-          toast('📢 Someone mentioned you!', { duration: 4000 });
+      .channel('notifications-page-mentions')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'push_notifications' },
+        (payload) => {
+          const n = payload.new as any;
+          if (n && (n.notification_type === 'mention' || n.notification_type === 'story_mention')) {
+            toast('📢 Someone mentioned you!', { duration: 4000 });
+          }
         }
-      })
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
-  // ─── Actions ────────────────────────────────────────────
+  // Filter and Batch notifications
+  const filteredNotifications = useMemo(() => {
+    const categoryFiltered = filterByCategory(notifications, activeCategory);
+    return batchNotifications(categoryFiltered, getProfile);
+  }, [notifications, activeCategory, profiles]);
 
-  const markAllAsRead = async () => {
-    const unreadIds = dbNotifications.filter(n => !n.read_at).map(n => n.id);
-    for (const id of unreadIds) {
-      await markAsRead.mutateAsync(id);
-    }
-  };
+  // Group by Time
+  const timeGroups = useMemo(() => {
+    return groupByTime(filteredNotifications);
+  }, [filteredNotifications]);
 
-  const deleteNotification = async (ids: string | string[]) => {
-    const idArray = Array.isArray(ids) ? ids : [ids];
-    const { error } = await supabase.from('push_notifications').delete().in('id', idArray);
-    if (error) toast.error('Failed to delete notifications');
-  };
-
-  const handleNotificationClick = (notification: any) => {
+  const handleItemClick = (item: any) => {
+    const notification = item._isBatched ? item.latest : item;
     const data = notification.data || {};
-    if (!notification.read_at) markAsRead.mutate(notification.id);
 
-    switch (notification.notification_type) {
-      case 'like':
-      case 'comment':
-      case 'new_post':
-        if (data.type === 'video_comment' || data.type === 'video_like') {
-          navigate('/', { state: { feedMode: 'relax', videoId: data.videoId, openComments: data.type === 'video_comment' } });
-        } else if (data.postId) {
-          navigate(`/post/${data.postId}`);
-        }
-        break;
-      case 'new_video':
-        if (data.videoId) navigate('/', { state: { feedMode: 'relax', videoId: data.videoId } });
-        break;
-      case 'follow':
-        if (data.userId) navigate(`/profile/${data.userId}`);
-        break;
-      case 'mention':
-        if (data.postId) navigate(`/post/${data.postId}`);
-        else if (data.videoId) navigate('/', { state: { feedMode: 'relax', videoId: data.videoId } });
-        break;
-      case 'circle_member':
-      case 'circle_event':
-        if (data.circleId) navigate(`/circles/${data.circleId}`);
-        break;
-      case 'circle_post':
-        if (data.postId && data.circleId) navigate(`/circles/${data.circleId}/post/${data.postId}`);
-        else if (data.circleId) navigate(`/circles/${data.circleId}`);
-        break;
-      case 'live_start':
-        if (data.streamId) navigate(`/live/${data.streamId}`);
-        break;
-      case 'question_answer':
-      case 'answer_vote':
-        if (data.questionId) navigate(`/ask/question/${data.questionId}`);
-        break;
-      case 'story_mention':
-        if (data.story_id) {
-          const mentionerProfile = data.mentioner_id ? getProfile(data.mentioner_id) : null;
-          setReshareDialog({
-            storyId: data.story_id,
-            mentionerName: mentionerProfile?.name || notification.title?.split(' mentioned')[0] || 'Someone',
-          });
-        }
-        break;
-      case 'order':
-      case 'order_update':
-      case 'order_shipped':
-      case 'order_delivered':
-        if (data.orderId) navigate(`/order/${data.orderId}`);
-        else navigate('/order-history');
-        break;
-      case 'message':
-      case 'new_message':
-        if (data.conversationId) navigate('/messages', { state: { conversationId: data.conversationId } });
-        else navigate('/messages');
-        break;
-      case 'safety':
-      case 'sos_alert':
-      case 'helper_request':
-        navigate('/', { state: { activeTab: 'safe' } });
-        break;
-      case 'event':
-        if (data.circleId) navigate(`/circles/${data.circleId}`);
-        break;
-      case 'reward':
-      case 'achievement':
-        navigate('/profile');
-        break;
-      case 'product_review':
-        if (data.productId) navigate(`/product/${data.productId}`);
-        break;
-      case 'dispute':
-      case 'dispute_update':
-        if (data.disputeId) navigate('/disputes');
-        break;
-      default:
-        // Fallback: try common data fields
-        if (data.postId) navigate(`/post/${data.postId}`);
-        else if (data.videoId) navigate('/', { state: { feedMode: 'relax', videoId: data.videoId } });
-        else if (data.circleId) navigate(`/circles/${data.circleId}`);
-        else if (data.orderId) navigate(`/order/${data.orderId}`);
-        else if (data.conversationId) navigate('/messages', { state: { conversationId: data.conversationId } });
-        else if (data.questionId) navigate(`/ask/question/${data.questionId}`);
-        else if (data.userId) navigate(`/profile/${data.userId}`);
-        break;
+    if (!notification.read_at) {
+      if (item._groupItemIds) {
+        item._groupItemIds.forEach((id: string) => markAsRead.mutate(id));
+      } else if (item.ids) {
+        item.ids.forEach((id: string) => markAsRead.mutate(id));
+      } else {
+        markAsRead.mutate(notification.id);
+      }
+    }
+
+    if (notification.notification_type === 'story_mention' && data.story_id) {
+      const mentionerProfile = data.mentioner_id ? getProfile(data.mentioner_id) : null;
+      setReshareDialog({
+        storyId: data.story_id,
+        mentionerName: mentionerProfile?.name || notification.title?.split(' mentioned')[0] || 'Someone',
+      });
+      return;
+    }
+
+    const target = getNotificationNavTarget(notification);
+    if (target.state) {
+      navigate(target.path, { state: target.state });
+    } else {
+      navigate(target.path);
     }
   };
 
@@ -217,10 +153,15 @@ const Notifications = () => {
     if (!reshareDialog) return;
     setIsResharing(true);
     try {
-      const { data: story } = await supabase.from('stories').select('media_url, media_type').eq('id', reshareDialog.storyId).single();
+      const { data: story } = await supabase
+        .from('stories')
+        .select('media_url, media_type')
+        .eq('id', reshareDialog.storyId)
+        .single();
       if (!story) throw new Error('Story not found');
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+
       const { error } = await supabase.from('stories').insert({
         user_id: user.id,
         media_url: story.media_url,
@@ -228,8 +169,9 @@ const Notifications = () => {
         expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         reshared_story_id: reshareDialog.storyId,
       } as any);
+
       if (error) throw error;
-      toast.success('Story reshared!');
+      toast.success('Story reshared to your profile!');
     } catch {
       toast.error('Failed to reshare story');
     } finally {
@@ -238,66 +180,22 @@ const Notifications = () => {
     }
   };
 
-  // ─── Filtering ──────────────────────────────────────────
-
-  const socialCount = dbNotifications.filter(n => isSocial(n.notification_type)).length;
-  const circleCount = dbNotifications.filter(n => isCircle(n.notification_type)).length;
-  const mentionCount = dbNotifications.filter(n => isMention(n.notification_type)).length;
-
-  const groupMessageNotifications = (notifs: any[]) => {
-    const grouped: any[] = [];
-    const messageGroups = new Map<string, any[]>();
-
-    for (const n of notifs) {
-      if (n.notification_type === 'message' || n.notification_type === 'new_message') {
-        const data = n.data || {};
-        const senderId = data.userId || data.senderId || data.conversationId;
-        if (senderId) {
-          if (!messageGroups.has(senderId)) {
-            messageGroups.set(senderId, []);
-          }
-          messageGroups.get(senderId)!.push(n);
-        } else {
-          grouped.push(n);
-        }
-      } else {
-        grouped.push(n);
-      }
-    }
-
-    for (const [_, group] of messageGroups.entries()) {
-      group.sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime());
-      
-      const latestNotif = { ...group[0] };
-      const totalCount = group.length;
-      
-      latestNotif.body = totalCount > 1 
-        ? `Sent you ${totalCount} new messages` 
-        : `Sent you a new message`;
-      
-      latestNotif._groupItemIds = group.map(g => g.id);
-      grouped.push(latestNotif);
-    }
-
-    grouped.sort((a, b) => new Date(b.sent_at).getTime() - new Date(a.sent_at).getTime());
-    return grouped;
+  const handleMarkAllRead = () => {
+    markAllAsRead.mutate(undefined, {
+      onSuccess: () => toast.success('All marked as read'),
+    });
   };
 
-  const rawFiltered = (() => {
-    switch (activeTab) {
-      case 'unread': return dbNotifications.filter(n => !n.read_at);
-      case 'social': return dbNotifications.filter(n => isSocial(n.notification_type));
-      case 'circles': return dbNotifications.filter(n => isCircle(n.notification_type));
-      case 'mentions': return dbNotifications.filter(n => isMention(n.notification_type));
-      default: return dbNotifications;
-    }
-  })();
+  const handleClearAll = () => {
+    clearAllNotifications.mutate(undefined, {
+      onSuccess: () => {
+        toast.success('All notifications cleared');
+        setConfirmClearAll(false);
+      },
+    });
+  };
 
-  const filtered = groupMessageNotifications(rawFiltered);
-
-  // ─── Render ─────────────────────────────────────────────
-
-  if (isLoading && !dbNotifications.length) {
+  if (isLoading && notifications.length === 0) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <SerkleLoader size="md" className="text-current" />
@@ -305,106 +203,206 @@ const Notifications = () => {
     );
   }
 
+  const groupKeys: TimeGroup[] = ['Today', 'Yesterday', 'This Week', 'Earlier'];
+  const hasAnyItems = filteredNotifications.length > 0;
+
   return (
-    <div className="min-h-screen bg-background pb-20">
+    <div className="min-h-screen bg-background pb-24 text-foreground selection:bg-secondary/40 max-w-[480px] mx-auto border-l border-r border-border font-sans relative">
       {/* Header */}
-      <div className="sticky top-0 bg-background/80 backdrop-blur-xl border-b border-border z-10">
+      <div className="sticky top-0 bg-background/85 backdrop-blur-xl border-b border-border z-20">
         <div className="flex items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="h-8 w-8">
+          <div className="flex items-center gap-2.5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate('/')}
+              className="h-8 w-8 rounded-full"
+            >
               <ArrowLeft className="size-5" />
             </Button>
             <div>
-              <h1 className="text-lg font-bold text-foreground">Notifications</h1>
-              {unreadCount > 0 && (
-                <p className="text-xs text-muted-foreground">{unreadCount} new</p>
-              )}
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-bold tracking-tight text-foreground">Notifications</h1>
+                {unreadCount > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-primary/15 text-primary text-[11px] font-bold">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
             </div>
           </div>
-          {unreadCount > 0 && (
-            <Button variant="ghost" size="sm" onClick={markAllAsRead} className="text-xs text-primary hover:text-primary/80">
-              <CheckCheck className="size-3.5 mr-1" />
-              Read all
+
+          <div className="flex items-center gap-1">
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleMarkAllRead}
+                className="h-8 px-2.5 text-xs text-primary hover:text-primary hover:bg-primary/10 rounded-full"
+              >
+                <CheckCheck className="size-3.5 mr-1" />
+                Read all
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setShowSettingsModal(true)}
+              className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full"
+              title="Notification Settings"
+            >
+              <Settings className="size-4" />
             </Button>
-          )}
+            {notifications.length > 0 && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setConfirmClearAll(true)}
+                className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-full"
+                title="Clear all"
+              >
+                <Trash2 className="size-4" />
+              </Button>
+            )}
+          </div>
+        </div>
+
+        {/* Filter Pills */}
+        <div className="flex items-center gap-1.5 px-4 pb-2.5 overflow-x-auto no-scrollbar">
+          {CATEGORIES.map((cat) => {
+            const isActive = activeCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => setActiveCategory(cat.id)}
+                className={`
+                  whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium transition-all
+                  ${isActive
+                    ? 'bg-primary text-primary-foreground shadow-sm'
+                    : 'bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }
+                `}
+              >
+                {cat.label}
+                {cat.id === 'unread' && unreadCount > 0 && (
+                  <span className={`ml-1.5 text-[10px] ${isActive ? 'text-primary-foreground font-bold' : 'text-primary font-bold'}`}>
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="sticky top-[53px] bg-background/80 backdrop-blur-xl border-b border-border z-10">
-          <TabsList className="w-full h-10 bg-transparent justify-start rounded-none p-0 gap-0">
-            <TabsTrigger value="all" className="flex-1 rounded-none text-xs border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary">
-              All
-            </TabsTrigger>
-            <TabsTrigger value="unread" className="flex-1 rounded-none text-xs border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary">
-              Unread {unreadCount > 0 && `(${unreadCount})`}
-            </TabsTrigger>
-            <TabsTrigger value="social" className="flex-1 rounded-none text-xs border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary">
-              Social
-            </TabsTrigger>
-            <TabsTrigger value="circles" className="flex-1 rounded-none text-xs border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary">
-              Circles
-            </TabsTrigger>
-            <TabsTrigger value="mentions" className="flex-1 rounded-none text-xs border-b-2 border-transparent data-[state=active]:border-primary data-[state=active]:text-primary">
-              <AtSign className="size-3 mr-0.5" />
-              Mentions
-            </TabsTrigger>
-          </TabsList>
-        </div>
+      {/* Notification List */}
+      {!hasAnyItems ? (
+        <GenericEmptyState
+          title={
+            activeCategory === 'unread'
+              ? 'All caught up!'
+              : activeCategory === 'social'
+              ? 'No social updates'
+              : activeCategory === 'circles'
+              ? 'No circle activity'
+              : activeCategory === 'shop'
+              ? 'No shop notifications'
+              : activeCategory === 'safety'
+              ? 'No safety alerts'
+              : activeCategory === 'messages'
+              ? 'No chat alerts'
+              : 'No notifications yet'
+          }
+          description={
+            activeCategory === 'unread'
+              ? "You've read all your notifications. We'll alert you when there is new activity!"
+              : 'Interactions, mentions, updates, and orders will show up here.'
+          }
+          className="py-24"
+        />
+      ) : (
+        <div className="divide-y divide-border/30">
+          {groupKeys.map((group) => {
+            const items = timeGroups[group] || [];
+            if (items.length === 0) return null;
 
-        {/* Single content area for all tabs */}
-        {['all', 'unread', 'social', 'circles', 'mentions'].map(tab => (
-          <TabsContent key={tab} value={tab} className="mt-0">
-            {filtered.length === 0 ? (
-              <EmptyState tab={activeTab} />
-            ) : (
-              <div className="divide-y divide-border">
-                {filtered.map(notification => (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                    profile={(notification.data as any)?.userId ? getProfile((notification.data as any).userId) : null}
-                    onClickItem={handleNotificationClick}
-                    onMarkRead={(id) => {
-                      if (notification._groupItemIds) {
-                        notification._groupItemIds.forEach((gid: string) => markAsRead.mutate(gid));
-                      } else {
-                        markAsRead.mutate(id);
-                      }
-                    }}
-                    onDelete={(id) => {
-                      if (notification._groupItemIds) {
-                        deleteNotification(notification._groupItemIds);
-                      } else {
-                        deleteNotification(id);
-                      }
-                    }}
-                    onNavigateProfile={(userId) => navigate(`/profile/${userId}`)}
-                  />
-                ))}
+            return (
+              <div key={group} className="pt-2">
+                <div className="px-4 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/75 bg-muted/20">
+                  {group}
+                </div>
+                <div className="divide-y divide-border/30">
+                  {items.map((item: any) => {
+                    if (item._isBatched) {
+                      return (
+                        <NotificationGroupItem
+                          key={item.latest.id}
+                          batch={item}
+                          onClickItem={handleItemClick}
+                        />
+                      );
+                    }
+
+                    const profile = (item.data as any)?.userId
+                      ? getProfile((item.data as any).userId)
+                      : null;
+
+                    return (
+                      <NotificationItem
+                        key={item.id}
+                        notification={item}
+                        profile={profile}
+                        onClickItem={handleItemClick}
+                        onMarkRead={(id) => markAsRead.mutate(id)}
+                        onDelete={(id) => deleteNotification.mutate(id)}
+                        onNavigateProfile={(uid) => navigate(`/profile/${uid}`)}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            )}
-          </TabsContent>
-        ))}
-      </Tabs>
+            );
+          })}
+        </div>
+      )}
 
       {/* Swipe hint */}
-      {dbNotifications.length > 0 && (
-        <div className="px-4 py-2 text-center">
+      {hasAnyItems && (
+        <div className="px-4 py-3 text-center">
           <p className="text-[10px] text-muted-foreground">
-            ← Swipe to delete • Swipe to mark read →
+            ← Swipe left to delete • Swipe right to mark as read →
           </p>
         </div>
       )}
 
-      {/* Reshare Dialog */}
+      {/* Clear All Confirmation Dialog */}
+      <AlertDialog open={confirmClearAll} onOpenChange={setConfirmClearAll}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Clear all notifications?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove all notifications from your list. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleClearAll}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Clear All
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Story Reshare Dialog */}
       <AlertDialog open={!!reshareDialog} onOpenChange={(open) => !open && setReshareDialog(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Reshare to your story?</AlertDialogTitle>
             <AlertDialogDescription>
-              {reshareDialog?.mentionerName} mentioned you in their story. Would you like to reshare it?
+              {reshareDialog?.mentionerName} mentioned you in their story. Would you like to reshare it to your own story?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -416,152 +414,14 @@ const Notifications = () => {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Settings Modal */}
+      <NotificationSettingsModal
+        open={showSettingsModal}
+        onOpenChange={setShowSettingsModal}
+      />
+
       <FooterNav active="home" onSelect={() => {}} onOpenCreate={() => {}} />
     </div>
-  );
-};
-
-// ─── Notification Item ────────────────────────────────────────
-
-interface NotificationItemProps {
-  notification: any;
-  profile: any;
-  onClickItem: (n: any) => void;
-  onMarkRead: (id: string) => void;
-  onDelete: (id: string) => void;
-  onNavigateProfile: (userId: string) => void;
-}
-
-const NotificationItem: React.FC<NotificationItemProps> = ({
-  notification, profile, onClickItem, onMarkRead, onDelete, onNavigateProfile,
-}) => {
-  const [isDeleting, setIsDeleting] = useState(false);
-  const Icon = ICON_MAP[notification.notification_type] || Bell;
-  const colorClass = COLOR_MAP[notification.notification_type] || 'bg-muted text-muted-foreground';
-  const isUnread = !notification.read_at;
-
-  const swipeHandlers = useSwipeGestures(
-    {
-      onSwipeLeft: () => {
-        setIsDeleting(true);
-        setTimeout(() => onDelete(notification.id), 300);
-      },
-      onSwipeRight: () => {
-        if (isUnread) {
-          onMarkRead(notification.id);
-          toast.success('Marked as read');
-        }
-      },
-    },
-    { threshold: 100 }
-  );
-
-  return (
-    <div
-      {...swipeHandlers}
-      className={`group relative px-4 py-3 sm:py-3.5 transition-all duration-300 ease-out cursor-pointer overflow-hidden border-b border-border/40 last:border-0 ${
-        isUnread ? 'bg-primary/[0.03] hover:bg-primary/[0.06]' : 'bg-transparent hover:bg-muted/40'
-      } ${isDeleting ? 'opacity-0 scale-95 -translate-x-full' : 'opacity-100 scale-100 translate-x-0'}`}
-      onClick={() => onClickItem(notification)}
-    >
-      {/* Subtle glowing unread indicator on the left edge */}
-      {isUnread && (
-        <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-primary/80 rounded-r-md shadow-[0_0_8px_rgba(var(--primary),0.6)]" />
-      )}
-
-      <div className="flex items-start gap-3.5">
-        {/* Avatar or Icon */}
-        <div className="relative flex-shrink-0 mt-0.5">
-          {profile ? (
-            <Avatar
-              className="size-10 sm:size-11 ring-2 ring-background/50 shadow-sm transition-transform duration-300 group-hover:scale-105 cursor-pointer"
-              onClick={(e) => { e.stopPropagation(); onNavigateProfile(profile.id); }}
-            >
-              <AvatarImage src={profile.avatar_url} className="object-cover" />
-              <AvatarFallback
-                className="text-xs font-semibold"
-                style={{ backgroundColor: profile.avatar_color, color: '#fff' }}
-              >
-                {profile.initials}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <div className={`size-10 sm:size-11 rounded-full flex items-center justify-center transition-transform duration-300 group-hover:scale-105 shadow-sm ${colorClass}`}>
-              <Icon className="size-4.5" />
-            </div>
-          )}
-          
-          {/* Notification Type Micro-Icon overlay for profile-based notifications */}
-          {profile && (
-            <div className={`absolute -bottom-1 -right-1 size-4.5 rounded-full flex items-center justify-center border-[1.5px] border-background shadow-sm ${colorClass}`}>
-              <Icon className="size-2.5" />
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 min-w-0 py-0.5">
-          <div className="flex items-center justify-between gap-2 mb-0.5">
-            <p className="text-sm font-medium text-foreground truncate">
-              {notification.title}
-            </p>
-            <span className="text-[10px] font-medium text-muted-foreground/60 whitespace-nowrap flex-shrink-0">
-              {formatDistanceToNow(new Date(notification.sent_at), { addSuffix: true })}
-            </span>
-          </div>
-          
-          <p className="text-xs text-muted-foreground line-clamp-1 leading-snug">
-            {notification.body}
-          </p>
-        </div>
-
-        {/* Desktop Hover Actions */}
-        <div className="hidden md:flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200 self-center ml-2">
-          {isUnread && (
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={(e) => { e.stopPropagation(); onMarkRead(notification.id); }}
-              className="h-8 w-8 rounded-full hover:bg-primary/10 hover:text-primary text-muted-foreground"
-              title="Mark as read"
-            >
-              <Check className="size-4" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={(e) => { e.stopPropagation(); setIsDeleting(true); setTimeout(() => onDelete(notification.id), 300); }}
-            className="h-8 w-8 rounded-full hover:bg-destructive/10 hover:text-destructive text-muted-foreground"
-            title="Delete"
-          >
-            <Trash2 className="size-4" />
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// ─── Empty State ──────────────────────────────────────────────
-
-const EmptyState: React.FC<{ tab: string }> = ({ tab }) => {
-  const messages: Record<string, { title: string; desc: string }> = {
-    all: { title: 'All caught up!', desc: 'No notifications yet. Interact with posts, join circles, and connect with others.' },
-    unread: { title: 'No unread notifications', desc: "You're all caught up! Great job staying on top of things." },
-    social: { title: 'No social updates', desc: 'Like posts, follow people, and comment to start seeing social notifications.' },
-    circles: { title: 'No circle activity', desc: 'Join circles to receive updates about events, posts, and new members.' },
-    mentions: { title: 'No mentions yet', desc: 'When someone mentions you in a story or post, it will appear here.' },
-  };
-
-  const { title, desc } = messages[tab] || messages.all;
-
-  return (
-    <GenericEmptyState
-      title={title}
-      description={desc}
-      className="py-20"
-    />
   );
 };
 

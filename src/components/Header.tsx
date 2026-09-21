@@ -18,6 +18,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTheme } from '@/contexts/ThemeContext';
 import { useNavigation } from '@/contexts/NavigationContext';
 
+import NotificationPanel from './notifications/NotificationPanel';
+
 interface HeaderProps {
   onNotifications?: () => void;
   onMessages?: () => void;
@@ -25,6 +27,7 @@ interface HeaderProps {
   onProfileModalChange?: (isOpen: boolean) => void;
   onSettingsModalChange?: (isOpen: boolean) => void;
   onWalletModalChange?: (isOpen: boolean) => void;
+  onNotificationPanelChange?: (isOpen: boolean) => void;
 }
 
 const IconButton = ({ label, children, badge, onClick, 'data-testid': dataTestId }: {
@@ -83,7 +86,7 @@ const MenuItem = ({ icon, label, danger, badge, onClick, 'data-testid': dataTest
   </button>
 );
 
-const Header: React.FC<HeaderProps> = ({ onNotifications, onMessages, onMenuOpenChange, onProfileModalChange, onSettingsModalChange, onWalletModalChange }) => {
+const Header: React.FC<HeaderProps> = ({ onNotifications, onMessages, onMenuOpenChange, onProfileModalChange, onSettingsModalChange, onWalletModalChange, onNotificationPanelChange }) => {
   const { navigateToNotifications, navigateToMessages, navigateToShop } = useAppNav();
   const navigate = useNavigate();
   const { pushModalState } = useNavigation();
@@ -93,6 +96,7 @@ const Header: React.FC<HeaderProps> = ({ onNotifications, onMessages, onMenuOpen
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [showThemePicker, setShowThemePicker] = useState(false);
   const [showWalletModal, setShowWalletModal] = useState(false);
+  const [showNotificationPanel, setShowNotificationPanel] = useState(false);
 
   const handleOpenMenu = () => {
     pushModalState('header-menu', () => setMenuOpen(false));
@@ -114,6 +118,10 @@ const Header: React.FC<HeaderProps> = ({ onNotifications, onMessages, onMenuOpen
     pushModalState('header-wallet', () => setShowWalletModal(false));
     setShowWalletModal(true);
   };
+  const handleOpenNotifications = () => {
+    pushModalState('header-notifications', () => setShowNotificationPanel(false));
+    setShowNotificationPanel(true);
+  };
   const { unreadCount } = useNotifications();
   const { theme, setTheme } = useTheme();
 
@@ -132,6 +140,10 @@ const Header: React.FC<HeaderProps> = ({ onNotifications, onMessages, onMenuOpen
   React.useEffect(() => {
     onWalletModalChange?.(showWalletModal);
   }, [showWalletModal, onWalletModalChange]);
+
+  React.useEffect(() => {
+    onNotificationPanelChange?.(showNotificationPanel);
+  }, [showNotificationPanel, onNotificationPanelChange]);
 
   // Handle URL parameters to auto-open wallet or settings
   React.useEffect(() => {
@@ -186,14 +198,27 @@ const Header: React.FC<HeaderProps> = ({ onNotifications, onMessages, onMenuOpen
           </div>
 
           <div className="flex items-center gap-1">
-            <IconButton
-              label="Notifications"
-              badge={unreadCount}
-              onClick={navigateToNotifications}
-              data-testid="header-notifications"
-            >
-              <Bell className="size-4 text-primary" />
-            </IconButton>
+            <div className="relative">
+              <IconButton
+                label="Notifications"
+                badge={unreadCount}
+                onClick={() => {
+                  if (showNotificationPanel) {
+                    setShowNotificationPanel(false);
+                  } else {
+                    handleOpenNotifications();
+                  }
+                }}
+                data-testid="header-notifications"
+              >
+                <Bell className="size-4 text-primary" />
+              </IconButton>
+
+              <NotificationPanel
+                isOpen={showNotificationPanel}
+                onClose={() => setShowNotificationPanel(false)}
+              />
+            </div>
             <IconButton
               label="Search"
               onClick={handleOpenSearch}

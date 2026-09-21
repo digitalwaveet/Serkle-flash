@@ -31,6 +31,7 @@ const Index = () => {
   const [headerProfileOpen, setHeaderProfileOpen] = useState(false);
   const [headerSettingsOpen, setHeaderSettingsOpen] = useState(false);
   const [headerWalletOpen, setHeaderWalletOpen] = useState(false);
+  const [headerNotificationsOpen, setHeaderNotificationsOpen] = useState(false);
 
   // Restore scroll when returning to the page
   useEffect(() => {
@@ -109,8 +110,7 @@ const Index = () => {
     <div className="min-h-[100dvh] mx-auto bg-background text-foreground selection:bg-secondary/40 max-w-[480px] relative border-l border-r border-border font-sans" data-testid="app-loaded">
       <InstallPrompt />
       <Header
-        onNotifications={() => alert('Notifications')}
-        onMessages={() => alert('Messages')}
+        onNotificationPanelChange={setHeaderNotificationsOpen}
         onMenuOpenChange={setHeaderMenuOpen}
         onProfileModalChange={setHeaderProfileOpen}
         onSettingsModalChange={setHeaderSettingsOpen}
@@ -120,7 +120,7 @@ const Index = () => {
       <main className="pb-24">
         <StoriesBar />
 
-        {!headerMenuOpen && !headerProfileOpen && !headerSettingsOpen && !headerWalletOpen && (
+        {!headerMenuOpen && !headerProfileOpen && !headerSettingsOpen && !headerWalletOpen && !headerNotificationsOpen && (
           <FeedRelaxToggle activeMode={feedMode} onModeChange={setFeedMode} />
         )}
 
