@@ -40,6 +40,9 @@ test('screenshots exist and meet declared sizes and Chromium aspect-ratio limits
 });
 
 test('install icons exist at their declared dimensions', async () => {
+  const badge = await sharp(asset('/badge-72.png')).metadata();
+  assert.equal(badge.width, 72);
+  assert.equal(badge.height, 72);
   assert.ok(manifest.icons.some(icon => icon.sizes === '192x192'));
   assert.ok(manifest.icons.some(icon => icon.sizes === '512x512'));
   for (const icon of manifest.icons) {
@@ -69,9 +72,17 @@ test('manifest and HTML use consistent branding with no duplicate source link', 
 });
 
 test('unsupported integrations are not advertised without implementations', () => {
-  for (const field of ['file_handlers', 'protocol_handlers', 'share_target', 'related_applications', 'iarc_rating_id', 'widgets', 'edge_side_panel', 'note_taking', 'scope_extensions']) {
+  for (const field of ['file_handlers', 'protocol_handlers', 'related_applications', 'iarc_rating_id', 'widgets', 'edge_side_panel', 'note_taking', 'scope_extensions']) {
     assert.equal(manifest[field], undefined, field);
   }
+});
+
+test('share target has a receiving worker and review page', () => {
+  assert.equal(manifest.share_target.action, '/share-target');
+  assert.equal(manifest.share_target.method, 'POST');
+  assert.equal(manifest.share_target.enctype, 'multipart/form-data');
+  assert.ok(read('src/sw.ts').includes("url.pathname === '/share-target'"));
+  assert.ok(read('src/App.tsx').includes('path="/share"'));
 });
 
 test('production output has one manifest link, matching manifests, and shipped assets', () => {

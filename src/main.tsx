@@ -3,6 +3,10 @@ import App from './App.tsx'
 import './index.css'
 import { setFilePickerActive } from './utils/cacheManager'
 import { initTheme } from './hooks/useDarkMode'
+import { registerSW } from 'virtual:pwa-register'
+
+// Do not wait for remote images/fonts to finish loading before registration.
+registerSW({ immediate: true, onRegisterError(error) { console.error('[PWA] Registration failed', error); } });
 
 // Apply saved theme before first render to prevent flash-of-light-mode
 initTheme();

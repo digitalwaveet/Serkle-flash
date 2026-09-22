@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { shareReturnPath } from '@/lib/shareDraft';
 import { Eye, EyeOff, Mail, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,6 +20,7 @@ export default function Login() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const navigate = useNavigate();
+  const returnTo = shareReturnPath(useLocation().search);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -26,7 +28,7 @@ export default function Login() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}${returnTo}`,
         },
       });
       if (error) {
@@ -53,7 +55,7 @@ export default function Login() {
         toast({ title: "Login failed", description: error.message, variant: "destructive" });
       } else if (data.session) {
         toast({ title: "Welcome back!", description: "You've successfully logged in." });
-        navigate("/", { replace: true });
+        navigate(returnTo, { replace: true });
       }
     } catch {
       toast({ title: "Login failed", description: "An unexpected error occurred.", variant: "destructive" });

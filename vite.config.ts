@@ -19,7 +19,8 @@ export default defineConfig(({ mode }) => ({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      registerType: 'autoUpdate',
+      registerType: 'prompt',
+      injectRegister: false,
       includeAssets: ['favicon.ico', 'icon-192.png', 'icon-512.png', 'badge-72.png'],
       // One source of truth. Keep /manifest.json for existing links while the
       // plugin generates and links the equivalent /manifest.webmanifest.

@@ -1,8 +1,9 @@
 /// <reference lib="webworker" />
 
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
-import { registerRoute } from 'workbox-routing';
+import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching';
+import { registerRoute, NavigationRoute } from 'workbox-routing';
 import { NetworkOnly } from 'workbox-strategies';
+import { saveShareDraft } from './lib/shareDraft';
 
 declare let self: ServiceWorkerGlobalScope;
 
@@ -10,6 +11,30 @@ declare let self: ServiceWorkerGlobalScope;
 precacheAndRoute(self.__WB_MANIFEST);
 
 cleanupOutdatedCaches();
+
+// History routes use the cached shell, not a cached API response or private file.
+if (import.meta.env.PROD) registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), {
+  denylist: [/^\/api\//, /^\/auth\//, /^\/storage\//, /^\/share-target(?:\?|$)/, /\.[a-z0-9]+(?:\?|$)/i],
+}));
+
+// Installation alone must not replace a running version with unsaved work.
+self.addEventListener('message', event => {
+  if (event.data?.type === 'SKIP_WAITING') event.waitUntil(self.skipWaiting());
+});
+self.addEventListener('activate', event => { event.waitUntil(self.clients.claim()); });
+
+registerRoute(
+  ({ url }) => url.origin === self.location.origin && url.pathname === '/share-target',
+  async ({ request }) => {
+    try {
+      const id = await saveShareDraft(await request.formData());
+      return Response.redirect(new URL(`/share?draft=${id}`, self.location.origin).href, 303);
+    } catch {
+      return Response.redirect(new URL('/share?error=invalid', self.location.origin).href, 303);
+    }
+  },
+  'POST'
+);
 
 // Bypass SW for Supabase Storage (Fix for Video Range Requests / ERR_CACHE_OPERATION_NOT_SUPPORTED)
 registerRoute(
@@ -67,7 +92,11 @@ self.addEventListener('notificationclick', (event) => {
   console.log('[Service Worker] Notification click Received.');
   event.notification.close();
 
-  const urlToOpen = event.notification.data?.url || '/notifications';
+  let urlToOpen = new URL('/notifications', self.location.origin).href;
+  try {
+    const candidate = new URL(event.notification.data?.url || '/notifications', self.location.origin);
+    if (candidate.origin === self.location.origin) urlToOpen = candidate.href;
+  } catch { /* Keep the safe, same-origin fallback. */ }
 
   event.waitUntil(
     (async () => {
@@ -126,7 +155,7 @@ self.addEventListener('sync', (event: any) => {
         } else {
           // If no windows are open, we'd ideally run a direct sync here.
           // However, Supabase auth requires localStorage (unavailable in SW) or an IndexedDB session sharing mechanism.
-          console.warn('[Service Worker] Cannot background sync without an active client due to Auth token constraints. Will sync on next app open.');
+          throw new Error('No authenticated window is available; retry when the app opens.');
         }
       })
     );

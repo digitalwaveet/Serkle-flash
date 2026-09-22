@@ -111,17 +111,24 @@ export const cacheManager = {
 
   // Apply pending updates
   async applyUpdate() {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.getRegistration();
-        if (registration && registration.waiting) {
-          registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          window.location.reload();
-        }
-      } catch (error) {
-        console.error('Error applying update:', error);
-      }
-    }
+    if (isFilePickerActive()) throw new Error('Finish selecting your files before updating.');
+    if (!('serviceWorker' in navigator)) return false;
+    const registration = await navigator.serviceWorker.getRegistration();
+    if (!registration?.waiting) return false;
+    // Never clear the outbox/caches or reload before the new worker takes control.
+    await new Promise<void>((resolve, reject) => {
+      const changed = () => { cleanup(); resolve(); };
+      const timer = setTimeout(() => { cleanup(); reject(new Error('Update timed out. Please try again.')); }, 15000);
+      const cleanup = () => {
+        clearTimeout(timer);
+        navigator.serviceWorker.removeEventListener('controllerchange', changed);
+      };
+      navigator.serviceWorker.addEventListener('controllerchange', changed);
+      try { registration.waiting!.postMessage({ type: 'SKIP_WAITING' }); }
+      catch (error) { cleanup(); reject(error); }
+    });
+    window.location.reload();
+    return true;
   },
 
   // Add cache busting query parameter

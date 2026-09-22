@@ -1,5 +1,6 @@
 import { SerkleLoader } from '@/components/ui/SerkleLoader';
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
+import { readShareDraft, removeShareDraft } from '@/lib/shareDraft';
 import { ArrowLeft, Camera, MapPin, Users, Globe, Image, Video, Mic, X, Square, Pencil, ChevronLeft, ChevronRight, Wand2, FileText } from 'lucide-react';
 import ImageCropper from '@/components/ImageCropper';
 import VideoEditorModal from '@/components/VideoEditorModal';
@@ -16,13 +17,31 @@ import MentionTextarea from '@/components/MentionTextarea';
 import { CustomFilePicker, useFileManager } from '@/components/CustomFilePicker';
 import { PDFPreview } from '@/components/post/PDFPreview';
 
-const CreatePost: React.FC = () => {
+const CreatePost: React.FC<{ shareId?: string }> = ({ shareId }) => {
   const navigate = useNavigate();
   const { user } = useUser();
   const { createPost, isCreating } = usePostMutations();
   const [postText, setPostText] = useState('');
   const [privacy, setPrivacy] = useState<'public' | 'friends' | 'private'>('public');
   const fileManager = useFileManager();
+  const [shareState, setShareState] = useState<'loading' | 'ready' | 'error'>(shareId ? 'loading' : 'ready');
+  const addSharedFiles = fileManager.addFiles;
+  useEffect(() => {
+    if (!shareId || !user?.id) return;
+    let cancelled = false;
+    void readShareDraft(shareId, user.id).then(draft => {
+      if (cancelled) return;
+      if (!draft) { setShareState('error'); return; }
+      setPostText(draft.text);
+      addSharedFiles(draft.files.map(file => ({
+        id: crypto.randomUUID(), file, url: URL.createObjectURL(file),
+        kind: 'image' as const, name: file.name, size: file.size,
+        mimeType: file.type, status: 'idle' as const,
+      })));
+      setShareState('ready');
+    }).catch(() => { if (!cancelled) setShareState('error'); });
+    return () => { cancelled = true; };
+  }, [shareId, user?.id, addSharedFiles]);
   const [locationText, setLocationText] = useState<string | null>(null);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [voiceBlob, setVoiceBlob] = useState<Blob | null>(null);
@@ -195,6 +214,7 @@ const CreatePost: React.FC = () => {
 
   const handlePost = async () => {
     if (!user) { navigate('/login'); return; }
+    if (shareState !== 'ready' || isCreating) return;
 
     try {
       let voiceUrl: string | undefined;
@@ -247,6 +267,7 @@ const CreatePost: React.FC = () => {
         },
         user.id
       );
+      if (shareId) await removeShareDraft(shareId, user.id).catch(() => undefined);
       navigate('/');
     } catch (error) {
       console.error('Failed to create post:', error);
@@ -268,7 +289,7 @@ const CreatePost: React.FC = () => {
             Back
           </button>
           <h1 className="text-lg font-semibold">Create Post</h1>
-          <Button onClick={handlePost} disabled={!postText.trim() || isCreating} className="px-6">
+          <Button onClick={handlePost} disabled={(!postText.trim() && !fileManager.files.length && !pdfFile && !voiceBlob) || isCreating || shareState !== 'ready'} className="px-6">
             {isCreating ? <span className="flex items-center gap-2"><InlineVideoLoader />Posting...</span> : 'Post'}
           </Button>
         </div>
@@ -276,6 +297,13 @@ const CreatePost: React.FC = () => {
 
       {/* Content */}
       <div className="p-4 space-y-6">
+        {shareId && <section className="rounded-2xl border border-primary/20 bg-primary/5 p-4" aria-live="polite">
+          <p>{shareState === 'loading' ? 'Preparing your shared draft…' : shareState === 'error' ? 'This shared draft expired, is unavailable, or belongs to another account.' : 'Shared draft — review the content and audience before posting. Nothing has been uploaded yet.'}</p>
+          <Button variant="ghost" disabled={isCreating} onClick={async () => {
+            try { if (user) await removeShareDraft(shareId, user.id); navigate('/'); }
+            catch { toast.error('Could not discard the draft. Please try again.'); }
+          }}>Discard shared draft</Button>
+        </section>}
         {/* User Info */}
         <div className="flex items-center space-x-3">
           <Avatar className="w-10 h-10 border border-primary/10">

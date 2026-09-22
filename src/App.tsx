@@ -44,6 +44,7 @@ const CirclePostDetail = React.lazy(() => import("./pages/CirclePostDetail"));
 const CircleDashboard = React.lazy(() => import("./pages/CircleDashboard"));
 const PostDetail = React.lazy(() => import("./pages/PostDetail"));
 const CreatePost = React.lazy(() => import("./pages/CreatePost"));
+const Share = React.lazy(() => import("./pages/Share"));
 const CreateVideo = React.lazy(() => import("./pages/CreateVideo"));
 const CreateCircle = React.lazy(() => import("./pages/CreateCircle"));
 const CreateShop = React.lazy(() => import("./pages/CreateShop"));
@@ -174,6 +175,7 @@ const AppRoutes = ({ onReadyChange }: { onReadyChange: (ready: boolean) => void 
     <Suspense fallback={<PageLoader />}>
       <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/share" element={<Share />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
@@ -323,7 +325,6 @@ const AppGate = () => {
         aria-hidden={showSplash && !fadeOut}
       >
         <Toaster />
-        <UpdateNotifier />
         <GlobalRealtimeListener />
         <InstallPrompt />
         <UploadProgressOverlay />
@@ -331,6 +332,7 @@ const AppGate = () => {
         <NotificationPermissionPrompt />
         <IncomingHelperRequestAlert />
         <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <UpdateNotifier />
           <AppRoutes onReadyChange={setFirstPageReady} />
         </BrowserRouter>
       </div>

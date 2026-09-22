@@ -1,110 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { RefreshCw, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { cacheManager, isFilePickerActive } from '@/utils/cacheManager';
+import { useUpload } from '@/contexts/UploadContext';
+import { toast } from 'sonner';
 
-const UpdateNotifier: React.FC = () => {
-  const queryClient = useQueryClient();
-  const [updateAvailable, setUpdateAvailable] = useState(false);
-  const [showNotification, setShowNotification] = useState(false);
+export default function UpdateNotifier() {
+  const [available, setAvailable] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
+  const [updating, setUpdating] = useState(false);
+  const { pathname } = useLocation();
+  const { uploads } = useUpload();
+  const busy = pathname.startsWith('/create/') || pathname === '/share' ||
+    Object.values(uploads).some(upload => upload.status === 'uploading');
 
   useEffect(() => {
-    // Force show update banner once so users reinstall the PWA
-    const hasSeenReinstall = localStorage.getItem('pwa-reinstall-v2-seen');
-    if (!hasSeenReinstall) {
-      setUpdateAvailable(true);
-      setShowNotification(true);
-      return;
-    }
-
     if (import.meta.env.DEV) return;
-    let checkInterval: ReturnType<typeof setInterval>;
-
-    const checkForUpdates = async () => {
-      if (isFilePickerActive()) return;
-      
+    let cancelled = false;
+    const check = async () => {
+      if (document.hidden || isFilePickerActive()) return;
       try {
-        const hasUpdate = await cacheManager.checkForUpdates();
-        if (hasUpdate && !updateAvailable) {
-          setUpdateAvailable(true);
-          setShowNotification(true);
-        }
-      } catch (error) {
-        console.error('Update check failed:', error);
-      }
+        const waiting = await cacheManager.checkForUpdates();
+        if (!cancelled) setAvailable(waiting);
+      } catch { /* Keep the app usable when offline. */ }
     };
+    void check();
+    const interval = setInterval(check, 60000);
+    document.addEventListener('visibilitychange', check);
+    return () => { cancelled = true; clearInterval(interval); document.removeEventListener('visibilitychange', check); };
+  }, []);
 
-    checkForUpdates();
-    checkInterval = setInterval(checkForUpdates, 5000);
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        setTimeout(() => {
-          if (!isFilePickerActive()) {
-            checkForUpdates();
-          }
-        }, 3000);
-      }
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
-    return () => {
-      if (checkInterval) {
-        clearInterval(checkInterval);
-      }
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [updateAvailable]);
-
-  const handleUpdate = async () => {
-    localStorage.setItem('pwa-reinstall-v2-seen', 'true');
-    try {
-      await cacheManager.clearQueryCache(queryClient);
-      await cacheManager.applyUpdate();
-    } catch (error) {
-      console.error('Update failed:', error);
-      await cacheManager.forceRefresh();
-    }
+  const update = async () => {
+    if (busy || isFilePickerActive()) { toast.info('Finish your draft or upload before updating.'); return; }
+    if (document.querySelector('[role="dialog"], [role="alertdialog"]')) { toast.info('Close the open dialog before updating.'); return; }
+    const hasDraft = Array.from(document.querySelectorAll('textarea, input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="range"]):not([type="color"]), [contenteditable="true"]'))
+      .some(element => element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement ? !!element.value : !!element.textContent);
+    if (hasDraft) { toast.info('Finish or clear your open draft before updating.'); return; }
+    setUpdating(true);
+    try { if (!await cacheManager.applyUpdate()) setAvailable(false); }
+    catch (error) { toast.error(error instanceof Error ? error.message : 'Unable to apply update.'); }
+    finally { setUpdating(false); }
   };
-
-  const handleDismiss = () => {
-    localStorage.setItem('pwa-reinstall-v2-seen', 'true');
-    setShowNotification(false);
-  };
-
-  if (!showNotification) {
-    return null;
-  }
-
-  return (
-    <div className="fixed bottom-6 right-6 z-[100] bg-zinc-900 text-white p-5 rounded-3xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 max-w-[340px] w-[calc(100%-3rem)] animate-in slide-in-from-bottom-5 fade-in duration-500">
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1">
-          <h4 className="font-bold text-lg tracking-tight">🚀 Performance Update</h4>
-          <p className="text-sm text-zinc-400 mt-2 leading-relaxed">
-            We've improved the app's performance. Refresh to apply the latest optimizations.
-          </p>
-        </div>
-        <button 
-          onClick={handleDismiss}
-          className="p-1 hover:bg-white/10 rounded-full transition-colors opacity-60 hover:opacity-100"
-        >
-          <X className="size-5" />
-        </button>
-      </div>
-      
-      <div className="flex gap-3 mt-6">
-        <Button
-          onClick={handleUpdate}
-          className="flex-1 bg-white text-black hover:bg-zinc-200 rounded-2xl h-11 font-semibold transition-all active:scale-95"
-        >
-          <RefreshCw className="mr-2 h-4 w-4" />
-          Update Now
-        </Button>
-      </div>
+  if (!available || dismissed) return null;
+  return <aside role="status" className="fixed bottom-6 right-6 z-[100] w-[calc(100%-3rem)] max-w-sm rounded-3xl border border-border bg-card p-5 text-card-foreground shadow-xl">
+    <div className="flex items-start justify-between gap-3">
+      <div><h2 className="font-semibold">A new Serkle version is ready</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{busy ? 'Finish your draft or upload, then update when you’re ready.' : 'Update when you’re ready. This reloads the app.'}</p></div>
+      <button aria-label="Dismiss update" disabled={updating} onClick={() => setDismissed(true)}><X className="size-5" /></button>
     </div>
-  );
-};
-
-export default UpdateNotifier;
+    <Button className="mt-4 w-full" disabled={updating || busy} onClick={update}><RefreshCw className="mr-2 size-4" />{updating ? 'Updating…' : 'Update Serkle'}</Button>
+  </aside>;
+}
