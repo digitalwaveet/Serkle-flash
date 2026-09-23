@@ -14,7 +14,7 @@ cleanupOutdatedCaches();
 
 // History routes use the cached shell, not a cached API response or private file.
 if (import.meta.env.PROD) registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), {
-  denylist: [/^\/api\//, /^\/auth\//, /^\/storage\//, /^\/share-target(?:\?|$)/, /\.[a-z0-9]+(?:\?|$)/i],
+  denylist: [/^\/\.well-known(?:\/|$)/, /^\/api\//, /^\/auth\//, /^\/storage\//, /^\/share-target(?:\?|$)/, /\.[a-z0-9]+(?:\?|$)/i],
 }));
 
 // Installation alone must not replace a running version with unsaved work.
