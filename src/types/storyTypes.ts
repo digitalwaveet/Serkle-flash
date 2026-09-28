@@ -117,6 +117,12 @@ export interface StoryMessage {
 }
 
 export interface EditorExtraData {
+  publicationId?: string;
+  originalVideoUrl?: string;
+  reshared_post_id?: string;
+  reshared_story_id?: string;
+  overlayBlob?: Blob;
+  stickerData?: StoryStickerData[];
   mediaType: 'image' | 'video';
   story_state?: StoryState; // New field for saving state
   
@@ -126,4 +132,13 @@ export interface EditorExtraData {
   backgroundGradient?: { from: string; to: string; };
 }
 
-export type PauseReason = 'hold' | 'menu' | 'input' | 'activity' | 'visibility' | 'link-overlay' | 'profile' | 'emoji-picker';
+export interface StoryStickerData {
+  type: string;
+  content: string;
+  infoType?: 'location' | 'hashtag' | 'mention' | 'link';
+  mentionUserId?: string;
+  x: number;
+  y: number;
+}
+
+export type PauseReason = 'hold' | 'menu' | 'input' | 'activity' | 'visibility' | 'link-overlay' | 'profile' | 'emoji-picker' | 'manual' | 'report' | 'confirm';

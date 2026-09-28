@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Heart, Send, BarChart3, Repeat2, ChevronUp } from 'lucide-react';
 import EmojiPicker from '@/components/EmojiPicker';
 import { StoryMention, PauseReason } from '@/types/storyTypes';
+import { toast } from '@/hooks/use-toast';
 
 interface StoryBottomBarProps {
   isOwnStory: boolean;
@@ -13,7 +14,7 @@ interface StoryBottomBarProps {
   isResharing: boolean;
   isMentionedInStory: boolean;
   onReshare: () => void;
-  onSendMessage: (msg: string) => void;
+  onSendMessage: (msg: string) => Promise<void>;
   onShowActivity: () => void;
   onShare: () => void;
   onPause: (reason: PauseReason) => void;
@@ -43,6 +44,8 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
   const [inputFocused, setInputFocused] = useState(false);
   const [emojiOpen, setEmojiOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sendingRef = useRef(false);
+  const [sending, setSending] = useState(false);
 
   // The reply box is "engaged" while the user is focused on it, the emoji picker
   // is open, or there's a draft message. Playback stays paused for that whole
@@ -65,13 +68,18 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
     return () => onResume('input');
   }, [onResume]);
 
-  const handleSendMessage = () => {
-    if (!message.trim()) return;
-    onSendMessage(message.trim());
-    setMessage('');
-    setInputFocused(false);
-    setEmojiOpen(false);
-    inputRef.current?.blur(); // dismiss mobile keyboard after send
+  const handleSendMessage = async () => {
+    if (!message.trim() || sendingRef.current) return;
+    sendingRef.current = true; setSending(true);
+    try {
+      await onSendMessage(message.trim());
+      setMessage('');
+      setInputFocused(false);
+      setEmojiOpen(false);
+      inputRef.current?.blur();
+    } catch {
+      toast({ title: 'Reply not saved', description: 'Your reply is still here. Please try again.', variant: 'destructive' });
+    } finally { sendingRef.current = false; setSending(false); }
   };
 
   return (
@@ -99,7 +107,7 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
 
       {/* Main Bottom Bar */}
       {!isOwnStory ? (
-        <div className="absolute bottom-3 left-3 right-3 z-[50] flex items-center gap-2" data-story-controls>
+        <div className="story-viewer-bottom absolute left-3 right-3 z-[50] flex items-center gap-2" data-story-controls>
           {/* Reply input — primary, left (Instagram pattern) */}
           <div className="story-message-input flex-1">
             <EmojiPicker
@@ -115,7 +123,10 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               placeholder="Send message"
-              className="flex-1 bg-transparent text-white placeholder:text-white/60 outline-none text-sm"
+              aria-label="Reply to this story"
+              maxLength={2000}
+              disabled={sending}
+              className="min-w-0 flex-1 bg-transparent text-white placeholder:text-white/60 outline-none text-sm"
               onFocus={() => setInputFocused(true)}
               onBlur={() => setInputFocused(false)}
               onKeyDown={(e) => {
@@ -128,10 +139,11 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
             {message && (
               <button
                 onClick={handleSendMessage}
+                disabled={sending}
                 className="text-white hover:text-white/80 transition-colors shrink-0 px-2"
                 aria-label="Send message"
               >
-                <Send className="size-5" />
+                {sending ? <SerkleLoader size="xs" /> : <Send className="size-5" />}
               </button>
             )}
           </div>
@@ -156,6 +168,7 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
           <button
             onClick={onLikeToggle}
             disabled={isLikeLoading}
+            aria-pressed={isLiked}
             className="story-action-btn shrink-0"
             aria-label={isLiked ? "Unlike story" : "Like story"}
           >
@@ -172,7 +185,7 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
           <button
             onClick={onShare}
             className="story-action-btn shrink-0"
-            aria-label="Share story"
+            aria-label="Share author profile"
           >
             <Send className="size-5 text-white" />
           </button>
@@ -180,7 +193,7 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
       ) : (
         /* Activity button - only for story owner */
         storyDbId && (
-          <div className="absolute bottom-3 left-3 right-3 z-[50] flex justify-center" data-story-controls>
+          <div className="story-viewer-bottom absolute left-4 right-4 z-[50] flex justify-start" data-story-controls>
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -188,7 +201,6 @@ export const StoryBottomBar: React.FC<StoryBottomBarProps> = ({
               }}
               className="story-activity-btn"
             >
-              <ChevronUp className="size-4" />
               <BarChart3 className="size-4" />
               <span className="text-sm font-medium">Activity</span>
             </button>

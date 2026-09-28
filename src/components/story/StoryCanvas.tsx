@@ -8,6 +8,12 @@ interface StoryCanvasProps {
   children?: React.ReactNode; // For editor overlays or viewer UI that sit ON TOP of the scaled canvas
   videoRef?: React.Ref<HTMLVideoElement>;
   onVideoLoadedMetadata?: (e: React.SyntheticEvent<HTMLVideoElement, Event>) => void;
+  onMediaReady?: () => void;
+  onMediaError?: () => void;
+  onMediaWaiting?: () => void;
+  paused?: boolean;
+  muted?: boolean;
+  onMentionClick?: (userId: string) => void;
 }
 
 export const CANVAS_W = 1080;
@@ -27,9 +33,14 @@ function getSvgPathFromStroke(stroke: number[][]) {
   return d.join(' ');
 }
 
-export function StoryCanvas({ state, className = '', children, videoRef, onVideoLoadedMetadata }: StoryCanvasProps) {
+export function StoryCanvas({ state, className = '', children, videoRef, onVideoLoadedMetadata, onMediaReady, onMediaError, onMediaWaiting, paused = false, muted = true, onMentionClick }: StoryCanvasProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
+  useEffect(() => {
+    containerRef.current?.querySelectorAll('video').forEach(video => {
+      if (paused) video.pause(); else void video.play().catch(() => {});
+    });
+  }, [paused, state.background.value]);
 
   useEffect(() => {
     const updateScale = () => {
@@ -100,6 +111,8 @@ export function StoryCanvas({ state, className = '', children, videoRef, onVideo
               <img
                 src={background.value}
                 alt="background"
+                onLoad={onMediaReady}
+                onError={onMediaError}
                 className="object-contain"
                 style={{ ...bgStyle, filter: background.filterCss || 'none' }}
               />
@@ -110,6 +123,8 @@ export function StoryCanvas({ state, className = '', children, videoRef, onVideo
           <img 
             src={background.value} 
             alt="background" 
+            onLoad={onMediaReady}
+            onError={onMediaError}
             className="object-cover" 
             style={{ ...bgStyle, filter: background.filterCss || 'none' }}
           />
@@ -121,7 +136,7 @@ export function StoryCanvas({ state, className = '', children, videoRef, onVideo
               <video
                 src={background.value}
                 className="object-cover"
-                autoPlay loop muted playsInline
+                autoPlay={!paused} loop muted playsInline
                 style={{
                   ...bgStyle,
                   filter: `blur(30px) brightness(0.6) ${background.filterCss || ''}`.trim(),
@@ -132,9 +147,12 @@ export function StoryCanvas({ state, className = '', children, videoRef, onVideo
                 ref={videoRef}
                 src={background.value} 
                 className="object-contain" 
-                autoPlay loop muted playsInline
+                autoPlay={!paused} loop muted={muted} playsInline
                 style={{ ...bgStyle, filter: background.filterCss || 'none' }}
                 onLoadedMetadata={onVideoLoadedMetadata}
+                onCanPlay={onMediaReady}
+                onError={onMediaError}
+                onWaiting={onMediaWaiting}
               />
             </>
           );
@@ -144,9 +162,12 @@ export function StoryCanvas({ state, className = '', children, videoRef, onVideo
             ref={videoRef}
             src={background.value} 
             className="object-cover" 
-            autoPlay loop muted playsInline
+            autoPlay={!paused} loop muted={muted} playsInline
             style={{ ...bgStyle, filter: background.filterCss || 'none' }}
             onLoadedMetadata={onVideoLoadedMetadata}
+            onCanPlay={onMediaReady}
+            onError={onMediaError}
+            onWaiting={onMediaWaiting}
           />
         );
       default:
@@ -188,6 +209,7 @@ export function StoryCanvas({ state, className = '', children, videoRef, onVideo
             borderRadius: '16px',
             whiteSpace: 'pre-wrap',
             wordBreak: 'break-word',
+            width: 'max-content',
             maxWidth: `${CANVAS_W * 0.9}px`, // Don't let text go wider than 90% of canvas
           }}
         >
@@ -205,6 +227,14 @@ export function StoryCanvas({ state, className = '', children, videoRef, onVideo
     }
 
     if (el.type === 'info') {
+      const text = <>{el.infoType === 'location' ? '📍 ' : el.infoType === 'mention' ? '@' : el.infoType === 'hashtag' ? '#' : el.infoType === 'link' ? '↗ ' : ''}{el.content}</>;
+      const classes = "bg-black/60 backdrop-blur-md px-6 py-3 rounded-full text-white font-medium text-3xl border border-white/20 flex items-center gap-3";
+      if (onMentionClick && el.infoType === 'mention' && el.mentionUserId) return <button key={el.id} data-story-controls data-el-id={el.id} style={{ ...baseStyle, pointerEvents: 'auto' }} className={classes} onClick={() => onMentionClick(el.mentionUserId!)}>{text}</button>;
+      if (onMentionClick && el.infoType === 'link' && el.content) {
+        let url: URL | undefined;
+        try { url = new URL(el.content.includes('://') ? el.content : 'https://' + el.content); } catch { /* non-link label */ }
+        if (url && ['https:', 'http:'].includes(url.protocol)) return <a key={el.id} data-story-controls data-el-id={el.id} style={{ ...baseStyle, pointerEvents: 'auto' }} className={classes} href={url.href} target="_blank" rel="noopener noreferrer">{text}</a>;
+      }
       return (
         <div
           key={el.id}

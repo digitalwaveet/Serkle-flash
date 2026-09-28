@@ -1,34 +1,56 @@
 import { SerkleLoader } from '@/components/ui/SerkleLoader';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { X, Type, Sticker, Sparkles, PenTool, Trash2, Eye, ChevronRight, Image as ImageIcon, Undo2 } from 'lucide-react';
+import { X, Type, Sticker, Sparkles, PenTool, Trash2, Eye, ChevronRight, Image as ImageIcon, Undo2, Crop } from 'lucide-react';
 import { StoryState, StoryElement, DrawingPath, EditorExtraData } from '@/types/storyTypes';
 import { StoryCanvas, CANVAS_W, CANVAS_H } from './StoryCanvas';
 import { StoryDrawingOverlay } from './StoryDrawingOverlay';
 import StoryTextOverlay from './StoryTextOverlay';
 import StoryStickerPicker from './StoryStickerPicker';
 import StoryFilterPicker from './StoryFilterPicker';
-import { CustomFilePicker, useFileManager } from '@/components/CustomFilePicker';
+import { StoryDialog } from './StoryDialog';
+import { inspectStoryFile, validateStoryFile } from '@/lib/storyMedia';
+import { AlertDialog, AlertDialogContent, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogCancel, AlertDialogAction } from '@/components/ui/alert-dialog';
 
 interface Props {
   previewUrl: string;
   mediaType?: 'image' | 'video';
+  startWithText?: boolean;
   initialPostElements?: { postCardImageUrl?: string };
   resharedPostId?: string;
   onDone: (editedImageBlob: Blob, mentionedUserIds?: string[], extraData?: EditorExtraData) => Promise<void> | void;
   onCancel: () => void;
 }
 
-export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElements, resharedPostId, onDone, onCancel }: Props) {
+export function StoryEditor({ previewUrl, mediaType = 'image', startWithText = false, initialPostElements, resharedPostId, onDone, onCancel }: Props) {
   const [state, setState] = useState<StoryState>({
     background: { type: mediaType, value: previewUrl, x: 50, y: 50, scale: 1, rotation: 0 },
     elements: [],
     drawingPaths: []
   });
 
-  const [activeTool, setActiveTool] = useState<'text' | 'sticker' | 'filter' | 'draw' | null>(null);
+  const [activeTool, setActiveTool] = useState<'text' | 'sticker' | 'filter' | 'draw' | null>(startWithText ? 'text' : null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showLayerControls, setShowLayerControls] = useState(false);
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
+  const [publishError, setPublishError] = useState('');
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+  const [editingText, setEditingText] = useState<StoryElement | null>(null);
+  const publicationId = useRef(crypto.randomUUID());
+  const publishing = useRef(false);
+  const stickerUrls = useRef<string[]>([]);
+  useEffect(() => () => stickerUrls.current.forEach(url => URL.revokeObjectURL(url)), []);
+  useEffect(() => {
+    const guard = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ''; };
+    window.addEventListener('beforeunload', guard);
+    return () => window.removeEventListener('beforeunload', guard);
+  }, []);
+  const requestClose = () => {
+    if (publishing.current) return;
+    if (activeTool) { setActiveTool(null); return; }
+    if (isPreviewMode) { setIsPreviewMode(false); return; }
+    setConfirmDiscard(true);
+  };
   const [isOverTrash, setIsOverTrash] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -93,7 +115,7 @@ export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElemen
   }), []);
 
   // File manager for image stickers
-  const imageStickerManager = useFileManager();
+  const photoInput = useRef<HTMLInputElement>(null);
 
   // Initialize elements
   useEffect(() => {
@@ -276,7 +298,7 @@ export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElemen
     }
 
     if (!canvasRef.current) return;
-    const rect = canvasRef.current.getBoundingClientRect();
+    const rect = (canvasRef.current.querySelector('.story-canvas-inner') || canvasRef.current).getBoundingClientRect();
 
     let newX = g.elStartX;
     let newY = g.elStartY;
@@ -428,19 +450,21 @@ export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElemen
   const handleAddText = (overlay: any) => {
     pushUndo();
     const newElement: StoryElement = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: editingText?.id || crypto.randomUUID(),
       type: 'text',
       content: overlay.text,
-      x: overlay.x, y: overlay.y,
-      scale: 1, rotation: 0, zIndex: Date.now(),
+      x: editingText?.x ?? overlay.x, y: editingText?.y ?? overlay.y,
+      scale: editingText?.scale ?? 1, rotation: editingText?.rotation ?? 0, zIndex: editingText?.zIndex ?? Date.now(),
       fontSize: overlay.fontSize,
+      fontFamily: overlay.fontFamily,
       fontWeight: overlay.fontWeight,
       fontStyle: overlay.fontStyle,
       textAlign: overlay.textAlign,
       color: overlay.color,
       bgColor: overlay.bgColor
     };
-    setState(prev => ({ ...prev, elements: [...prev.elements, newElement] }));
+    setState(prev => ({ ...prev, elements: editingText ? prev.elements.map(el => el.id === editingText.id ? newElement : el) : [...prev.elements, newElement] }));
+    setEditingText(null);
     setSelectedId(newElement.id);
     selectedIdRef.current = newElement.id;
     setActiveTool(null);
@@ -464,7 +488,9 @@ export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElemen
 
   const handleAddImageSticker = (file: File | Blob) => {
     pushUndo();
+    validateStoryFile(file);
     const url = URL.createObjectURL(file);
+    stickerUrls.current.push(url);
     const newElement: StoryElement = {
       id: Math.random().toString(36).substr(2, 9),
       type: 'image',
@@ -477,192 +503,51 @@ export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElemen
     selectedIdRef.current = newElement.id;
   };
 
-  // Watch for new image stickers
-  useEffect(() => {
-    const item = imageStickerManager.files[0];
-    if (item) {
-      handleAddImageSticker(item.file);
-      imageStickerManager.removeFile(item.id);
-    }
-  }, [imageStickerManager.files]);
-
   const handleDone = async () => {
-    if (isSharing) return;
+    if (publishing.current) return;
+    publishing.current = true;
     setIsSharing(true);
-    
+    setPublishError('');
     try {
-      let blob: Blob;
-      if (previewUrl.startsWith('blob:') || previewUrl.startsWith('data:')) {
-        blob = await fetch(previewUrl).then(r => r.blob());
-      } else {
-        blob = new Blob(['empty'], { type: mediaType === 'video' ? 'video/mp4' : 'image/jpeg' });
-      }
-      
-      // Extract mentions
-      const mentionedUserIds = state.elements
-        .filter(e => e.infoType === 'mention' && e.mentionUserId)
-        .map(e => e.mentionUserId as string);
-
+      const response = await fetch(previewUrl);
+      if (!response.ok) throw new Error('Could not read this media. Please try another file.');
+      const blob = await response.blob();
+      validateStoryFile(blob);
+      const mentionedUserIds = [...new Set(state.elements.filter(e => e.infoType === 'mention' && e.mentionUserId).map(e => e.mentionUserId!))];
       await onDone(blob, mentionedUserIds, {
-        mediaType: mediaType,
-        originalVideoUrl: mediaType === 'video' ? previewUrl : undefined,
-        story_state: state
+        mediaType, originalVideoUrl: mediaType === 'video' ? previewUrl : undefined,
+        story_state: state, publicationId: publicationId.current, reshared_post_id: resharedPostId,
       });
-    } catch (e) {
-      console.error('Failed to finalize story canvas:', e);
+    } catch (error) {
+      setPublishError(error instanceof Error ? error.message : 'Could not share your story. Your edits are still here—try again.');
     } finally {
+      publishing.current = false;
       setIsSharing(false);
     }
   };
 
+  const selected = state.elements.find(el => el.id === selectedId);
+  const adjustSelected = (patch: Partial<StoryElement>) => {
+    if (!selectedId) return;
+    pushUndo();
+    setState(prev => ({ ...prev, elements: prev.elements.map(el => el.id === selectedId ? { ...el, ...patch } : el) }));
+  };
 
   return (
-    <div className="fixed inset-0 z-[100] bg-black flex flex-col overflow-hidden" style={{ touchAction: 'none' }}>
-      
-      {/* Top Bar */}
-      <div 
-        data-editor-controls
-        className={`absolute top-0 inset-x-0 flex items-center justify-between p-4 z-20 transition-opacity duration-300 ${isPreviewMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-      >
-        <button onClick={onCancel} className="p-2 rounded-full bg-white/10 text-white backdrop-blur-md">
-          <X className="w-6 h-6" />
-        </button>
-        <span className="text-white font-semibold drop-shadow-md">Your story</span>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleUndo}
-            disabled={undoStack.length === 0}
-            className={`p-2 rounded-full bg-white/10 text-white backdrop-blur-md transition-all ${
-              undoStack.length === 0 ? 'opacity-40 cursor-not-allowed' : 'hover:bg-white/20 active:scale-95'
-            }`}
-            title="Undo"
-            aria-label="Undo last action"
-          >
-            <Undo2 className="w-6 h-6" />
-          </button>
-          <button onClick={() => setIsPreviewMode(true)} className="p-2 rounded-full bg-white/10 text-white backdrop-blur-md hover:bg-white/20 transition-colors">
-            <Eye className="w-6 h-6" />
-          </button>
-        </div>
+    <StoryDialog title={isPreviewMode ? 'Preview your story' : 'Edit story'} onClose={requestClose} className={`story-editor ${isPreviewMode ? 'story-editor--preview' : ''}`}>
+      <div data-editor-controls className="studio-top">
+        <button onClick={requestClose} disabled={isSharing} className="studio-icon" aria-label={isPreviewMode ? 'Back to editing' : 'Close editor'}><X size={20} /></button>
+        <span className="sr-only">{isPreviewMode ? 'Preview' : 'Edit story'}</span>
       </div>
-
-      {/* Canvas Area — all pointer events are captured here */}
-      <div 
-        className={`absolute inset-0 flex items-center justify-center transition-all duration-300 ease-in-out ${isPreviewMode ? 'p-0' : 'p-4 md:py-8'}`}
-        ref={canvasRef}
-        onPointerDown={handlePointerDown}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerCancel}
-        style={{ touchAction: 'none' }}
-      >
-        <div 
-          className={`relative w-full h-full mx-auto flex items-center justify-center transition-all duration-300 ease-in-out ${isPreviewMode ? 'max-w-full max-h-full' : 'md:max-w-[450px] md:max-h-[85vh]'}`}
-        >
-          <StoryCanvas state={state}>
-            
-            {/* Interactive Layer: visual selection rings on selected elements */}
-            {!isPreviewMode && state.elements.map(el => (
-              <div
-                key={el.id}
-                className="absolute origin-center pointer-events-none"
-                style={{
-                  left: `${el.x}%`, top: `${el.y}%`,
-                  transform: `translate(-50%, -50%) scale(${el.scale}) rotate(${el.rotation}deg)`,
-                }}
-              >
-                {selectedId === el.id && (
-                  <div className="ring-2 ring-white ring-offset-2 ring-offset-black/50 rounded-lg p-2 min-w-[60px] min-h-[40px]" />
-                )}
-              </div>
-            ))}
-            
-            {/* Safe Zone Overlay */}
-            {!isPreviewMode && selectedId && (
-              <div className="absolute inset-0 pointer-events-none border-[2px] border-dashed border-white/30 rounded-3xl z-[200]">
-                <div className="absolute top-0 inset-x-0 h-[250px] bg-red-500/10 border-b border-dashed border-red-500/50" />
-                <div className="absolute bottom-0 inset-x-0 h-[250px] bg-red-500/10 border-t border-dashed border-red-500/50" />
-              </div>
-            )}
-          </StoryCanvas>
-        </div>
-
-        {/* Right Floating Toolbar */}
-        <div 
-          data-editor-controls
-          className={`absolute right-4 top-1/2 -translate-y-1/2 flex flex-col gap-4 bg-black/40 backdrop-blur-md p-2 rounded-full z-20 transition-opacity duration-300 ${isPreviewMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-        >
-          <button onClick={() => setActiveTool('text')} className="p-3 text-white hover:bg-white/20 rounded-full">
-            <Type className="w-6 h-6" />
-          </button>
-          <button onClick={() => setActiveTool('sticker')} className="p-3 text-white hover:bg-white/20 rounded-full">
-            <Sticker className="w-6 h-6" />
-          </button>
-          <CustomFilePicker
-            manager={imageStickerManager}
-            accept="image/*"
-            hidePreviewList
-            expandInline
-            expandDirection="left"
-          >
-            <div className="p-3 text-white hover:bg-white/20 rounded-full cursor-pointer">
-              <ImageIcon className="w-6 h-6" />
-            </div>
-          </CustomFilePicker>
-          <button onClick={() => setActiveTool('draw')} className="p-3 text-white hover:bg-white/20 rounded-full">
-            <PenTool className="w-6 h-6" />
-          </button>
-          <button onClick={() => setActiveTool('filter')} className="p-3 text-white hover:bg-white/20 rounded-full">
-            <Sparkles className="w-6 h-6" />
-          </button>
-        </div>
-      </div>
-
-      {/* Bottom Toolbar */}
-      <div 
-        data-editor-controls
-        className={`absolute bottom-0 inset-x-0 p-4 z-20 flex justify-end items-center transition-opacity duration-300 ${isPreviewMode ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-      >
-        <button 
-          onClick={handleDone} 
-          disabled={isSharing}
-          className="flex items-center gap-2 bg-white text-black px-6 py-3 rounded-full font-semibold shadow-lg active:scale-95 transition-transform hover:bg-gray-100 disabled:opacity-70 disabled:pointer-events-none"
-        >
-          {isSharing ? (
-            <>
-              <SerkleLoader size="xs" className="text-current" />
-              <span>Sharing...</span>
-            </>
-          ) : (
-            <>Share <ChevronRight className="w-5 h-5" /></>
-          )}
-        </button>
-      </div>
-
-      {/* Trash Zone — visible when dragging */}
-      <div className={`absolute bottom-0 inset-x-0 h-[100px] bg-gradient-to-t from-red-600/80 to-transparent flex items-center justify-center z-[150] transition-opacity duration-200 pointer-events-none ${isDragging ? 'opacity-100' : 'opacity-0'}`}>
-        <div className={`p-4 rounded-full bg-black/50 text-white transition-transform duration-150 ${isOverTrash ? 'scale-125 bg-red-600' : ''}`}>
-          <Trash2 className="w-8 h-8" />
-        </div>
-      </div>
-
-      {/* Tool Overlays */}
-      {activeTool === 'text' && <StoryTextOverlay onAdd={handleAddText} onClose={() => setActiveTool(null)} />}
-      {activeTool === 'sticker' && <StoryStickerPicker onAdd={handleAddSticker} onClose={() => setActiveTool(null)} />}
-      {activeTool === 'filter' && (
-        <div className="absolute inset-x-0 bottom-0 z-[150]">
-          <StoryFilterPicker 
-            previewUrl={previewUrl}
-            selectedId={state.background.filterCss || 'none'} 
-            onSelect={(id, css) => {
-              pushUndo(stateRef.current);
-              setState(prev => ({ ...prev, background: { ...prev.background, filterCss: css } }));
-            }} 
-            onClose={() => setActiveTool(null)} 
-          />
-        </div>
-      )}
-      
+      <div className="studio-workspace">
+        <div className="studio-canvas-shell">
+          <div className="studio-canvas" ref={canvasRef}
+            onPointerDown={isSharing ? undefined : handlePointerDown} onPointerMove={handlePointerMove}
+            onPointerUp={handlePointerUp} onPointerCancel={handlePointerCancel}>
+            <StoryCanvas state={state}>
+              {!isPreviewMode && selectedId && <div className="absolute inset-x-0 top-[12%] bottom-[14%] border-y-2 border-dashed border-white/30 pointer-events-none" />}
+            </StoryCanvas>
+          </div>
       {/* Drawing Overlay */}
       <StoryDrawingOverlay 
         isActive={activeTool === 'draw'} 
@@ -674,17 +559,85 @@ export function StoryEditor({ previewUrl, mediaType = 'image', initialPostElemen
         }}
         onCancel={() => setActiveTool(null)}
       />
-
-      {/* Preview Mode Exit */}
-      {isPreviewMode && (
-        <button 
-          onClick={() => setIsPreviewMode(false)}
-          className="absolute top-12 left-4 z-[200] p-3 rounded-full bg-black/50 text-white backdrop-blur-md active:scale-90"
-        >
-          <X className="w-6 h-6" />
+          {!isPreviewMode && state.elements.length > 0 && <div className="studio-selection" data-editor-controls>
+            <select aria-label="Select a story layer" value={selectedId || ''} disabled={isSharing} onChange={e => setSelectedId(e.target.value || null)}>
+              <option value="">Select layer</option>
+              {state.elements.map((el, index) => <option key={el.id} value={el.id}>{index + 1}. {el.type === 'text' ? el.content?.slice(0, 18) : el.type}</option>)}
+            </select>
+            {selected && <>
+              {selected.type === 'text' && <button disabled={isSharing} onClick={() => { setEditingText(selected); setActiveTool('text'); }}>Edit text</button>}
+              <button disabled={isSharing} aria-expanded={showLayerControls} onClick={() => setShowLayerControls(value => !value)}>Adjust</button>
+              {showLayerControls && <><button disabled={isSharing} aria-label="Move selected layer left" onClick={() => adjustSelected({ x: Math.max(5, selected.x - 5) })}>←</button>
+              <button disabled={isSharing} aria-label="Move selected layer right" onClick={() => adjustSelected({ x: Math.min(95, selected.x + 5) })}>→</button>
+              <button disabled={isSharing} aria-label="Move selected layer up" onClick={() => adjustSelected({ y: Math.max(5, selected.y - 5) })}>↑</button>
+              <button disabled={isSharing} aria-label="Move selected layer down" onClick={() => adjustSelected({ y: Math.min(95, selected.y + 5) })}>↓</button>
+              <button disabled={isSharing} aria-label="Make layer smaller" onClick={() => adjustSelected({ scale: Math.max(.2, selected.scale - .1) })}>−</button>
+              <button disabled={isSharing} aria-label="Make layer larger" onClick={() => adjustSelected({ scale: Math.min(4, selected.scale + .1) })}>+</button>
+              </>}
+              <button disabled={isSharing} aria-label="Delete selected layer" onClick={() => { pushUndo(); setState(prev => ({ ...prev, elements: prev.elements.filter(el => el.id !== selectedId) })); setSelectedId(null); }}><Trash2 size={16} /></button>
+            </>}
+          </div>}
+        </div>
+        {!isPreviewMode && <div data-editor-controls className="studio-tools" aria-label="Story editing tools">
+          <button disabled={isSharing} className="studio-tool" onClick={() => { setEditingText(null); setActiveTool('text'); }}><b className="text-xl font-semibold" aria-hidden="true">Aa</b><span>Text</span></button>
+          <button disabled={isSharing} className="studio-tool" onClick={() => setActiveTool('sticker')}><Sticker /><span>Stickers</span></button>
+          <button disabled={isSharing} className="studio-tool" onClick={() => photoInput.current?.click()}><ImageIcon /><span>Photo</span></button>
+          <input ref={photoInput} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={async event => {
+            const file = event.target.files?.[0]; event.target.value = '';
+            if (!file) return;
+            try { if (await inspectStoryFile(file) !== 'image') throw new Error('Choose an image for your photo sticker.'); handleAddImageSticker(file); }
+            catch (error) { setPublishError(error instanceof Error ? error.message : 'Could not add photo.'); }
+          }} />
+          <button disabled={isSharing} className="studio-tool" onClick={() => setActiveTool('draw')}><PenTool /><span>Draw</span></button>
+          <button disabled={isSharing} className="studio-tool" onClick={() => setActiveTool('filter')}><Sparkles /><span>Filters</span></button>
+          <button disabled={isSharing} className="studio-tool" onClick={() => { pushUndo(); setState(prev => ({ ...prev, background: { ...prev.background, objectFit: prev.background.objectFit === 'cover' ? 'contain' : 'cover', x: 50, y: 50, scale: 1, rotation: 0 } })); }}><Crop /><span>{state.background.objectFit === 'cover' ? 'Fit' : 'Fill'}</span></button>
+        </div>}
+      </div>
+      {publishError && <div className="studio-publish-status"><p className="story-error" role="alert">{publishError}</p></div>}
+      {isSharing && <div className="studio-publish-status text-center text-sm text-white bg-black/70 rounded-xl p-3" role="status">Sharing your story… Keep this screen open.</div>}
+      <div data-editor-controls className="studio-footer">
+        <div className="flex items-center gap-2">
+          <button disabled={isSharing || undoStack.length === 0 || isPreviewMode} className="studio-icon" aria-label="Undo last edit" onClick={handleUndo}><Undo2 size={21} /></button>
+          <button disabled={isSharing} className="studio-icon" aria-label={isPreviewMode ? 'Back to editing' : 'Preview story'} onClick={() => { setSelectedId(null); setIsPreviewMode(!isPreviewMode); }}><Eye size={21} /></button>
+        </div>
+        <button onClick={handleDone} disabled={isSharing} className="story-primary" aria-label="Share story">
+          {isSharing ? <><SerkleLoader size="xs" className="text-current" /><span>Sharing…</span></> : <><span className="share-avatar"><ImageIcon size={15} /></span><span>Your story</span><ChevronRight size={19} /></>}
         </button>
+      </div>
+      {/* Trash Zone — visible when dragging */}
+      <div className={`absolute bottom-0 inset-x-0 h-[100px] bg-gradient-to-t from-red-600/80 to-transparent flex items-center justify-center z-[150] transition-opacity duration-200 pointer-events-none ${isDragging ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`p-4 rounded-full bg-black/50 text-white transition-transform duration-150 ${isOverTrash ? 'scale-125 bg-red-600' : ''}`}>
+          <Trash2 className="w-8 h-8" />
+        </div>
+      </div>
+
+      {/* Tool Overlays */}
+      {activeTool === 'text' && <StoryTextOverlay initialElement={editingText || undefined} onAdd={handleAddText} onClose={() => setActiveTool(null)} />}
+      {activeTool === 'sticker' && <StoryStickerPicker onAdd={handleAddSticker} onClose={() => setActiveTool(null)} />}
+      {activeTool === 'filter' && (
+        <div className="absolute inset-x-0 bottom-0 z-[150]">
+          <StoryFilterPicker 
+            previewUrl={mediaType === 'image' ? previewUrl : undefined}
+            selectedId={state.background.filterCss || 'none'} 
+            onSelect={(id, css) => {
+              pushUndo(stateRef.current);
+              setState(prev => ({ ...prev, background: { ...prev.background, filterCss: css } }));
+            }} 
+            onClose={() => setActiveTool(null)} 
+          />
+        </div>
       )}
-    </div>
+      
+
+
+      <AlertDialog open={confirmDiscard} onOpenChange={setConfirmDiscard}>
+        <AlertDialogContent className="rounded-2xl bg-white text-[#111] w-[calc(100%_-_32px)]">
+          <AlertDialogTitle>Leave this story?</AlertDialogTitle>
+          <AlertDialogDescription>Your changes haven’t been shared. Leaving will discard this draft.</AlertDialogDescription>
+          <AlertDialogFooter><AlertDialogCancel>Keep editing</AlertDialogCancel><AlertDialogAction onClick={onCancel}>Discard draft</AlertDialogAction></AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </StoryDialog>
   );
 }
 

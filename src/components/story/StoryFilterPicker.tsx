@@ -40,7 +40,7 @@ const StoryFilterPicker: React.FC<Props> = ({ previewUrl, selectedId, onSelect, 
       {/* Header */}
       <div className="flex items-center justify-between p-3">
         <h3 className="text-white font-semibold">Filters</h3>
-        <button onClick={onClose} className="p-1.5 rounded-full bg-card/10 text-white">
+        <button aria-label="Close filters" onClick={onClose} className="p-2.5 rounded-full bg-card/10 text-white">
           <X className="size-4" />
         </button>
       </div>
@@ -48,7 +48,7 @@ const StoryFilterPicker: React.FC<Props> = ({ previewUrl, selectedId, onSelect, 
       {/* Filter strip */}
       <div className="flex gap-3 overflow-x-auto px-3 pb-4 scrollbar-hide">
         {STORY_FILTERS.map((filter) => (
-          <button key={filter.id} onClick={() => onSelect(filter.id, filter.css)}
+          <button aria-pressed={currentId === filter.id} key={filter.id} onClick={() => onSelect(filter.id, filter.css)}
             className={`flex flex-col items-center gap-1.5 shrink-0 transition-transform ${currentId === filter.id ? 'scale-105' : ''}`}>
             <div className={`size-16 rounded-xl overflow-hidden border-2 transition-colors ${currentId === filter.id ? 'border-primary' : 'border-transparent'}`}>
               {previewUrl ? (
@@ -62,7 +62,7 @@ const StoryFilterPicker: React.FC<Props> = ({ previewUrl, selectedId, onSelect, 
                 <div
                   className="w-full h-full"
                   style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                    background: 'linear-gradient(135deg, #6342bc 0%, #f19753 100%)',
                     filter: filter.css,
                   }}
                 />

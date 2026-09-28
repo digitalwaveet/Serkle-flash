@@ -59,9 +59,10 @@ export const StoryLinkOverlay: React.FC<StoryLinkOverlayProps> = ({
 
 interface StoryStickersProps {
   stickerData?: StoryStickerData[];
+  onMentionClick?: (id: string) => void;
 }
 
-export const StoryStickers: React.FC<StoryStickersProps> = ({ stickerData }) => {
+export const StoryStickers: React.FC<StoryStickersProps> = ({ stickerData, onMentionClick }) => {
   if (!stickerData || stickerData.length === 0) return null;
 
   const interactives = stickerData.filter((s) => s.infoType);
@@ -110,7 +111,7 @@ export const StoryStickers: React.FC<StoryStickersProps> = ({ stickerData }) => 
               onClick={(e) => {
                 e.stopPropagation();
                 // We could navigate to profile here, but for now we'll just log it or pass a callback
-                console.log('Navigate to profile:', sticker.mentionUserId);
+                if (sticker.mentionUserId) onMentionClick?.(sticker.mentionUserId);
               }}
               data-story-controls
             >

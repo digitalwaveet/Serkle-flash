@@ -1,6 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
-import { Story, StoryStickerData, StoryMention } from '@/types/storyTypes';
+import { Story, StoryStickerData, StoryMention, StoryState } from '@/types/storyTypes';
 import { enqueueStoryAction } from '@/lib/sync';
+import { publishStory } from './storyPublishing';
 
 export const storyService = {
   /**
@@ -15,6 +16,7 @@ export const storyService = {
         profiles:user_id (id, name, username, avatar_url, initials),
         live_streams:live_stream_id (status)
       `)
+      .gt('expires_at', new Date().toISOString())
       .order('created_at', { ascending: false });
 
     if (storiesError) throw storiesError;
@@ -78,13 +80,14 @@ export const storyService = {
   /**
    * Reshare a story
    */
-  async reshareStory(storyId: string, userId: string, mediaUrl: string, mediaType: 'image' | 'video' = 'image') {
+  async reshareStory(storyId: string, userId: string, mediaUrl: string, mediaType: 'image' | 'video' = 'image', state?: StoryState) {
     return supabase.from('stories').insert({
       user_id: userId,
       media_url: mediaUrl,
       media_type: mediaType,
       expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       reshared_story_id: storyId,
+      sticker_data: state ? [{ type: 'story_state', data: state }] : null,
     } as any);
   },
 
@@ -122,14 +125,14 @@ export const storyService = {
    * Delete a story
    */
   async deleteStory(storyId: string) {
-    return supabase.from('stories').delete().eq('id', storyId);
+    return supabase.from('stories').delete().eq('id', storyId).select('id').single();
   },
 
   /**
    * Hide a story (expires it immediately)
    */
   async hideStory(storyId: string) {
-    return supabase.from('stories').update({ expires_at: new Date().toISOString() } as any).eq('id', storyId);
+    return supabase.from('stories').update({ expires_at: new Date().toISOString() } as any).eq('id', storyId).select('id').single();
   },
 
   /**
@@ -148,130 +151,8 @@ export const storyService = {
   /**
    * Create a new story (with optional extraData from editor)
    */
-  async createStory(
-    userId: string,
-    blobOrFile: Blob | File,
-    isVideo: boolean,
-    mentionedUserIds?: string[],
-    extraData?: any
-  ) {
-    let publicUrl: string;
-    let overlayPublicUrl: string | null = null;
+  createStory: publishStory,
 
-    if (isVideo && extraData?.originalVideoUrl) {
-      const originalVideoUrl = extraData.originalVideoUrl as string;
-      if (originalVideoUrl.startsWith('blob:')) {
-        // For video stories from the editor: upload the original video
-        const videoBlob = await fetch(originalVideoUrl).then(r => r.blob());
-        const videoFile = new File([videoBlob], `story-${Date.now()}.mp4`, { type: 'video/mp4' });
-        const videoPath = `${userId}/${Date.now()}.mp4`;
-
-        const { error: uploadError } = await supabase.storage
-          .from('story-media')
-          .upload(videoPath, videoFile, { cacheControl: '3600', upsert: false });
-        if (uploadError) throw uploadError;
-
-        publicUrl = supabase.storage.from('story-media').getPublicUrl(videoPath).data.publicUrl;
-      } else {
-        publicUrl = originalVideoUrl;
-      }
-
-      // Upload transparent overlay PNG if present
-      if (extraData.overlayBlob) {
-        const overlayFile = new File([extraData.overlayBlob], `overlay-${Date.now()}.png`, { type: 'image/png' });
-        const overlayPath = `${userId}/overlay-${Date.now()}.png`;
-
-        const { error: overlayUploadError } = await supabase.storage
-          .from('story-media')
-          .upload(overlayPath, overlayFile, { cacheControl: '3600', upsert: false });
-        if (overlayUploadError) throw overlayUploadError;
-
-        overlayPublicUrl = supabase.storage.from('story-media').getPublicUrl(overlayPath).data.publicUrl;
-      }
-    } else {
-      // For image stories or direct video uploads (no editor extras)
-      const ext = isVideo ? 'mp4' : 'jpg';
-      const file = blobOrFile instanceof File ? blobOrFile : new File([blobOrFile], `story-${Date.now()}.${ext}`, { type: isVideo ? 'video/mp4' : 'image/jpeg' });
-      const filePath = `${userId}/${Date.now()}.${ext}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('story-media')
-        .upload(filePath, file, { cacheControl: '3600', upsert: false });
-      if (uploadError) throw uploadError;
-
-      publicUrl = supabase.storage.from('story-media').getPublicUrl(filePath).data.publicUrl;
-    }
-
-    const stickerDataPayload = extraData?.stickerData || [];
-    const metaEntries: any[] = [];
-    
-    if (overlayPublicUrl) {
-      metaEntries.push({ type: 'overlay', content: overlayPublicUrl, x: 0, y: 0 });
-    }
-    if (extraData?.videoTransform) {
-      metaEntries.push({ type: 'video_transform', ...extraData.videoTransform });
-    }
-    if (extraData?.backgroundGradient) {
-      metaEntries.push({ type: 'background_gradient', from: extraData.backgroundGradient.from, to: extraData.backgroundGradient.to });
-    }
-    if (extraData?.story_state) {
-      const storyState = extraData.story_state;
-      
-      // Update the background value with the real public URL instead of the local blob URL
-      if (storyState.background) {
-        storyState.background.value = publicUrl;
-      }
-      
-      if (storyState.elements) {
-        for (const el of storyState.elements) {
-          if (el.type === 'image' && el.file) {
-            const ext = el.file instanceof File ? (el.file.name.split('.').pop() || 'jpg') : 'jpg';
-            const stickerPath = `${userId}/stickers/${Date.now()}-${el.id}.${ext}`;
-            const { error: uploadError } = await supabase.storage
-              .from('story-media')
-              .upload(stickerPath, el.file, { cacheControl: '3600', upsert: false });
-            if (uploadError) throw uploadError;
-            
-            el.content = supabase.storage.from('story-media').getPublicUrl(stickerPath).data.publicUrl;
-            delete el.file;
-          }
-        }
-      }
-      metaEntries.push({ type: 'story_state', data: storyState });
-    }
-
-    const finalStickerData = [...stickerDataPayload, ...metaEntries].length > 0
-      ? [...stickerDataPayload, ...metaEntries]
-      : null;
-
-    const { data: storyData, error: dbError } = await supabase.from('stories').insert({
-      user_id: userId,
-      media_url: publicUrl,
-      media_type: isVideo ? 'video' : 'image',
-      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-      sticker_data: finalStickerData,
-      reshared_post_id: extraData?.reshared_post_id,
-      reshared_story_id: extraData?.reshared_story_id,
-    } as any).select('id').single();
-
-    if (dbError) throw dbError;
-
-    // Save mentions and notifications
-    if (storyData && mentionedUserIds && mentionedUserIds.length > 0) {
-      await supabase.from('story_mentions').insert(
-        mentionedUserIds.map(uid => ({ story_id: storyData.id, mentioned_user_id: uid }))
-      );
-      // We assume user name will be fetched by the trigger or passed, 
-      // but if we want to send notification here we can. 
-      // We will skip inserting to push_notifications here and let the backend/trigger handle it, 
-      // or we can just keep the original logic. To be safe, let's keep original logic.
-      // Wait, we need `userName`. Let's pass it if needed, or just say 'Someone' if not provided.
-      // Or we can just insert push_notifications in CreateStoryModal where we have `user.name`.
-    }
-
-    return storyData;
-  },
-  
   /**
    * Format a raw DB story into the canonical Story type
    */

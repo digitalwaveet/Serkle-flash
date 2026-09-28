@@ -1,4 +1,4 @@
-import React, { useRef, useState, useCallback } from 'react';
+import React, { useRef, useState, useCallback, useEffect } from 'react';
 import { ChevronUp } from 'lucide-react';
 import { PauseReason } from '@/types/storyTypes';
 
@@ -45,9 +45,14 @@ export const StoryInteractiveOverlay: React.FC<StoryInteractiveOverlayProps> = (
   const swipeStartX = useRef(0);
   const swipeStartY = useRef(0);
   const swipeDirectionLocked = useRef<'horizontal' | 'vertical' | null>(null);
+  const activePointer = useRef<number | null>(null);
+  useEffect(() => () => { if (holdTimerRef.current) clearTimeout(holdTimerRef.current); onResume('hold'); }, [onResume]);
 
   const handlePointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
     if ((e.target as HTMLElement).closest('[data-story-controls]')) return;
+    if (activePointer.current !== null) return;
+    activePointer.current = e.pointerId;
+    e.currentTarget.setPointerCapture(e.pointerId);
     
     swipeStartX.current = e.clientX;
     swipeStartY.current = e.clientY;
@@ -62,6 +67,7 @@ export const StoryInteractiveOverlay: React.FC<StoryInteractiveOverlayProps> = (
   }, [onPause]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (activePointer.current !== e.pointerId) return;
     if ((e.target as HTMLElement).closest('[data-story-controls]')) return;
     
     const dx = e.clientX - swipeStartX.current;
@@ -84,7 +90,11 @@ export const StoryInteractiveOverlay: React.FC<StoryInteractiveOverlayProps> = (
   }, [onSwipeDown]);
 
   const handlePointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-    if ((e.target as HTMLElement).closest('[data-story-controls]')) return;
+    if (activePointer.current !== e.pointerId) return;
+    activePointer.current = null;
+    e.currentTarget.releasePointerCapture(e.pointerId);
+    const wasHolding = isHoldingRef.current;
+    if (wasHolding) { isHoldingRef.current = false; setIsHolding(false); onResume('hold'); }
     
     // Clear the hold timer
     if (holdTimerRef.current) {
@@ -114,16 +124,12 @@ export const StoryInteractiveOverlay: React.FC<StoryInteractiveOverlayProps> = (
       return;
     }
 
-    if (isHoldingRef.current) {
-      isHoldingRef.current = false;
-      setIsHolding(false);
-      onResume('hold');
-      return;
-    }
+    if (wasHolding) return;
 
     // It was a SHORT TAP — determine zone
-    const screenWidth = window.innerWidth;
-    const tapX = swipeStartX.current;
+    const bounds = e.currentTarget.getBoundingClientRect();
+    const screenWidth = bounds.width;
+    const tapX = swipeStartX.current - bounds.left;
     const leftThreshold = screenWidth * 0.3;
 
     if (tapX < leftThreshold) {
@@ -144,6 +150,7 @@ export const StoryInteractiveOverlay: React.FC<StoryInteractiveOverlayProps> = (
   }, [onNext, onPrevious, onClose, onResume, isSwipingDown, swipeDownY, onSwipeDown, hasLinkContent, onShowLinkOverlay, resharedPostId, onNavigateToPost]);
 
   const handlePointerCancel = useCallback(() => {
+    activePointer.current = null;
     if (holdTimerRef.current) {
       clearTimeout(holdTimerRef.current);
       holdTimerRef.current = null;
