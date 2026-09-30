@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, UserPlus, Radio, Edit3, Video, MessagesSquare } from 'lucide-react';
+import { Camera, UserPlus, Radio, Video, MessagesSquare } from 'lucide-react';
 import { HomeIcon, CirclesIcon, CreateIcon, AskIcon, MessagesIcon } from '@/components/icons/FooterIcons';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -33,6 +33,17 @@ const CREATE_OPTIONS = [
   { label: "Group Chat", icon: MessagesSquare },
   { label: "Go live", icon: Radio },
 ];
+
+const NavImageIcon: React.FC<{ src: string; className?: string }> = ({ src, className = 'size-7' }) => (
+  <img
+    src={src}
+    alt=""
+    aria-hidden="true"
+    draggable={false}
+    decoding="async"
+    className={`object-contain ${className}`}
+  />
+);
 
 const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, onOpenGoLive, onOpenStoryModal, onOpenQuestionForm, videoMode = false }) => {
   const navigate = useNavigate();
@@ -123,16 +134,12 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               type="button"
               role="tab"
               aria-selected={active === "add"}
-              className="grid place-items-center size-10 rounded-full bg-secondary hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all"
+              className="grid place-items-center size-10 rounded-full border border-[#E9CB9F] bg-[#FFF4E5] shadow-sm hover:bg-[#FBE8D3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all"
               onClick={handleCreateClick}
               title={active === 'ask' ? 'Share Story' : 'Create'}
               aria-label={active === 'ask' ? 'Share Story' : 'Create'}
             >
-              {active === 'ask' ? (
-                <Edit3 className="size-6 text-white" />
-              ) : (
-                <CreateIcon fillMode="current" className="size-7 text-white" />
-              )}
+              <NavImageIcon src="/nav-icons/create-active.webp" />
             </button>
             
             {showCreatePopup && active !== 'ask' && (
@@ -169,7 +176,11 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             title="Ask Anonymously"
             aria-label="Ask Anonymously"
           >
-            <AskIcon active={active === "ask"} className="size-7" />
+            {active === 'ask' ? (
+              <NavImageIcon src="/nav-icons/ask-active.webp" />
+            ) : (
+              <NavImageIcon src="/nav-icons/ask-inactive.webp" className="size-7 nav-inactive-icon" />
+            )}
           </button>
 
           <button
@@ -183,7 +194,11 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             title="Messages"
             aria-label="Messages"
           >
-            <MessagesIcon active={active === "messages"} className="size-7" />
+            {active === 'messages' ? (
+              <NavImageIcon src="/nav-icons/messages-active.webp" />
+            ) : (
+              <NavImageIcon src="/nav-icons/messages-inactive.webp" className="size-7 nav-inactive-icon" />
+            )}
             {totalUnreadMessages > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] grid place-items-center bg-destructive text-white font-medium">
                 {formatBadge(totalUnreadMessages)}
@@ -243,17 +258,13 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
                 type="button"
                 role="tab"
                 aria-selected={active === "add"}
-                className="grid place-items-center size-10 rounded-full bg-secondary hover:bg-secondary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all"
+                className="grid place-items-center size-10 rounded-full border border-[#E9CB9F] bg-[#FFF4E5] shadow-sm hover:bg-[#FBE8D3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all"
                 onClick={handleCreateClick}
                 title={active === 'ask' ? 'Share Story' : 'Create'}
                 aria-label={active === 'ask' ? 'Share Story' : 'Create'}
                 data-testid="nav-add"
               >
-                {active === 'ask' ? (
-                  <Edit3 className="size-6 text-white" />
-                ) : (
-                  <CreateIcon fillMode="current" className="size-7 text-white" />
-                )}
+                <NavImageIcon src="/nav-icons/create-active.webp" />
               </button>
               
               {showCreatePopup && active !== 'ask' && (
@@ -292,7 +303,11 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               aria-label="Ask Anonymously"
               data-testid="nav-ask"
             >
-              <AskIcon active={active === "ask"} className="size-7" />
+              {active === 'ask' ? (
+                <NavImageIcon src="/nav-icons/ask-active.webp" />
+              ) : (
+                <NavImageIcon src="/nav-icons/ask-inactive.webp" className="size-7 nav-inactive-icon" />
+              )}
             </button>
 
             <button
@@ -307,7 +322,11 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               aria-label="Messages"
               data-testid="nav-messages"
             >
-              <MessagesIcon active={active === "messages"} className="size-7" />
+              {active === 'messages' ? (
+                <NavImageIcon src="/nav-icons/messages-active.webp" />
+              ) : (
+                <NavImageIcon src="/nav-icons/messages-inactive.webp" className="size-7 nav-inactive-icon" />
+              )}
               {totalUnreadMessages > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] grid place-items-center bg-destructive text-white font-medium">
                   {formatBadge(totalUnreadMessages)}
