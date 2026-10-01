@@ -178,7 +178,10 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               title={active === 'ask' ? 'Share Story' : 'Create'}
               aria-label={active === 'ask' ? 'Share Story' : 'Create'}
             >
-              <NavImageIcon src="/nav-icons/create-white.svg" className="size-5 drop-shadow-[0_1px_2px_rgba(88,49,16,0.3)] min-[360px]:size-6 min-[400px]:size-7" />
+              <NavImageIcon
+                src="/nav-icons/create-white.svg"
+                className={`size-5 drop-shadow-[0_1px_2px_rgba(88,49,16,0.3)] transition-transform duration-300 ease-out motion-reduce:transition-none ${showCreatePopup ? 'rotate-45' : 'rotate-0'} min-[360px]:size-6 min-[400px]:size-7`}
+              />
             </button>
             
             {showCreatePopup && active !== 'ask' && (
@@ -235,9 +238,9 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             aria-label="Messages"
           >
             {active === 'messages' ? (
-              <NavImageIcon src="/nav-icons/messages-active.webp" />
+              <NavImageIcon src="/nav-icons/messages-active.svg" />
             ) : (
-              <NavImageIcon src="/nav-icons/messages-inactive.webp" className="size-7 nav-inactive-icon" />
+              <NavImageIcon src="/nav-icons/messages-inactive.svg" className="size-7 nav-inactive-icon" />
             )}
             <NavLabel active={active === "messages"}>Messages</NavLabel>
             {totalUnreadMessages > 0 && (
@@ -305,7 +308,10 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
                 aria-label={active === 'ask' ? 'Share Story' : 'Create'}
                 data-testid="nav-add"
               >
-                <NavImageIcon src="/nav-icons/create-white.svg" className="size-5 drop-shadow-[0_1px_2px_rgba(88,49,16,0.3)] min-[360px]:size-6 min-[400px]:size-7" />
+                <NavImageIcon
+                  src="/nav-icons/create-white.svg"
+                  className={`size-5 drop-shadow-[0_1px_2px_rgba(88,49,16,0.3)] transition-transform duration-300 ease-out motion-reduce:transition-none ${showCreatePopup ? 'rotate-45' : 'rotate-0'} min-[360px]:size-6 min-[400px]:size-7`}
+                />
               </button>
               
               {showCreatePopup && active !== 'ask' && (
@@ -365,9 +371,9 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               data-testid="nav-messages"
             >
               {active === 'messages' ? (
-                <NavImageIcon src="/nav-icons/messages-active.webp" />
+                <NavImageIcon src="/nav-icons/messages-active.svg" />
               ) : (
-                <NavImageIcon src="/nav-icons/messages-inactive.webp" className="size-7 nav-inactive-icon" />
+                <NavImageIcon src="/nav-icons/messages-inactive.svg" className="size-7 nav-inactive-icon" />
               )}
               <NavLabel active={active === "messages"}>Messages</NavLabel>
               {totalUnreadMessages > 0 && (
