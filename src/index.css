@@ -1088,3 +1088,46 @@ body.modal-overlay-open {
   transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.2, 1),
               opacity 0.35s ease;
 }
+
+/* Light spring feedback keeps footer navigation lively without shifting layout. */
+@keyframes serkleFooterNavEnter {
+  0% { opacity: 0; transform: translate3d(0, 10px, 0); }
+  72% { opacity: 1; transform: translate3d(0, -1px, 0); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .serkle-footer-nav--enter {
+    animation: serkleFooterNavEnter 480ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+.serkle-footer-nav button[role="tab"]:not([aria-label="Create"]):not([aria-label="Share Story"]) {
+  scale: 1;
+  transform-origin: center;
+  transition: scale 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.serkle-footer-nav button[role="tab"][aria-selected="true"]:not([aria-label="Create"]):not([aria-label="Share Story"]) {
+  scale: 1.04;
+}
+
+.serkle-footer-nav button[role="tab"]:active:not([aria-label="Create"]):not([aria-label="Share Story"]) {
+  scale: 0.94;
+}
+
+.serkle-footer-nav button[aria-label="Create"],
+.serkle-footer-nav button[aria-label="Share Story"] {
+  transition: scale 300ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.serkle-footer-nav button[aria-label="Create"]:active,
+.serkle-footer-nav button[aria-label="Share Story"]:active {
+  scale: 0.94;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .serkle-footer-nav--enter { animation: none; }
+  .serkle-footer-nav button[role="tab"] { transition: none; }
+}

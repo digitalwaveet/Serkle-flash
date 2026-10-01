@@ -45,6 +45,34 @@ const NavImageIcon: React.FC<{ src: string; className?: string }> = ({ src, clas
   />
 );
 
+const FooterNavSurface: React.FC<{ videoMode?: boolean }> = ({ videoMode = false }) => (
+  <svg
+    aria-hidden="true"
+    className={`pointer-events-none absolute inset-0 z-0 h-full w-full overflow-visible ${videoMode ? '' : 'drop-shadow-[0_8px_18px_rgba(15,23,42,0.12)]'}`}
+    viewBox="0 0 1000 1000"
+    preserveAspectRatio="none"
+  >
+    <path
+      d={videoMode
+        ? 'M0 0 H408 C440 0 420 880 500 880 C580 880 560 0 592 0 H1000 V1000 H0 Z'
+        : 'M60 0 H408 C440 0 420 800 500 800 C580 800 560 0 592 0 H940 A60 500 0 0 1 1000 500 A60 500 0 0 1 940 1000 H60 A60 500 0 0 1 0 500 A60 500 0 0 1 60 0 Z'}
+      fill="hsl(var(--card))"
+      stroke={videoMode ? 'none' : 'hsl(var(--border))'}
+      strokeWidth="1"
+      vectorEffect="non-scaling-stroke"
+    />
+    {videoMode && (
+      <path
+        d="M0 0 H408 C440 0 420 880 500 880 C580 880 560 0 592 0 H1000"
+        fill="none"
+        stroke="rgba(255,255,255,0.3)"
+        strokeWidth="1"
+        vectorEffect="non-scaling-stroke"
+      />
+    )}
+  </svg>
+);
+
 const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, onOpenGoLive, onOpenStoryModal, onOpenQuestionForm, videoMode = false }) => {
   const navigate = useNavigate();
   const { navigateToTab, navigateToCreatePost, navigateToCreateVideo, navigateToCreateCircle, navigateToCreateShop, navigateToMessages } = useAppNav();
@@ -96,10 +124,11 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
     return (
       <nav 
         aria-label="Primary" 
-        className="w-full h-[50px] flex items-center justify-center bg-card backdrop-blur-lg border-t border-white/30"
+        className="serkle-footer-nav serkle-footer-nav--enter relative w-full h-[50px] flex items-center justify-center bg-transparent"
         role="tablist"
       >
-        <div className="grid grid-cols-5 place-items-center h-full w-full max-w-md px-4">
+        <FooterNavSurface videoMode />
+        <div className="relative z-[1] grid grid-cols-5 place-items-center h-full w-full max-w-md px-4">
           <button
             type="button"
             role="tab"
@@ -129,17 +158,17 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             <CirclesIcon active={active === "circles"} className="size-7" />
           </button>
 
-          <div className="relative">
+          <div className="relative size-10">
             <button
               type="button"
               role="tab"
               aria-selected={active === "add"}
-              className="grid place-items-center size-10 rounded-full border border-[#E9CB9F] bg-[#FFF4E5] shadow-sm hover:bg-[#FBE8D3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all"
+              className="absolute left-1/2 top-[-11px] z-10 grid size-12 -translate-x-1/2 place-items-center rounded-full border border-white/80 bg-[#E8D4BA] shadow-[0_8px_18px_rgba(111,73,38,0.3)] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B99065]"
               onClick={handleCreateClick}
               title={active === 'ask' ? 'Share Story' : 'Create'}
               aria-label={active === 'ask' ? 'Share Story' : 'Create'}
             >
-              <NavImageIcon src="/nav-icons/create-active.webp" />
+              <NavImageIcon src="/nav-icons/create-active.webp" className="size-9 drop-shadow-[0_2px_2px_rgba(88,49,16,0.3)]" />
             </button>
             
             {showCreatePopup && active !== 'ask' && (
@@ -213,15 +242,13 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
   return (
     <nav 
       aria-label="Primary" 
-      className="fixed inset-x-0 z-40 pointer-events-none" 
+      className="serkle-footer-nav serkle-footer-nav--enter fixed inset-x-0 z-40 pointer-events-none" 
       style={{ bottom: `calc(env(safe-area-inset-bottom) + 12px)` }}
     >
       <div className="mx-auto max-w-[480px] relative">
-        <div
-          className="pointer-events-auto mx-auto w-[92%] h-14 rounded-full bg-card border border-border shadow-xl"
-          role="tablist"
-        >
-          <div className="grid grid-cols-5 place-items-center h-full px-2">
+        <div className="pointer-events-auto relative mx-auto h-14 w-[92%]">
+          <FooterNavSurface />
+          <div className="relative z-[1] grid h-full grid-cols-5 place-items-center px-2" role="tablist">
             <button
               type="button"
               role="tab"
@@ -253,18 +280,18 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               <CirclesIcon active={active === "circles"} className="size-7" />
             </button>
 
-            <div className="relative">
+              <div className="relative size-10">
               <button
                 type="button"
                 role="tab"
                 aria-selected={active === "add"}
-                className="grid place-items-center size-10 rounded-full border border-[#E9CB9F] bg-[#FFF4E5] shadow-sm hover:bg-[#FBE8D3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all"
+                className="absolute left-1/2 top-[-15px] z-10 grid size-12 -translate-x-1/2 place-items-center rounded-full border border-white/80 bg-[#E8D4BA] shadow-[0_8px_18px_rgba(111,73,38,0.3)] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B99065]"
                 onClick={handleCreateClick}
                 title={active === 'ask' ? 'Share Story' : 'Create'}
                 aria-label={active === 'ask' ? 'Share Story' : 'Create'}
                 data-testid="nav-add"
               >
-                <NavImageIcon src="/nav-icons/create-active.webp" />
+                <NavImageIcon src="/nav-icons/create-active.webp" className="size-9 drop-shadow-[0_2px_2px_rgba(88,49,16,0.3)]" />
               </button>
               
               {showCreatePopup && active !== 'ask' && (
