@@ -45,6 +45,14 @@ const NavImageIcon: React.FC<{ src: string; className?: string }> = ({ src, clas
   />
 );
 
+const NavLabel: React.FC<{ active: boolean; children: React.ReactNode }> = ({ active, children }) => (
+  active ? null : (
+    <span className="text-[9px] leading-[10px] font-medium text-muted-foreground">
+      {children}
+    </span>
+  )
+);
+
 const FooterNavSurface: React.FC<{ videoMode?: boolean }> = ({ videoMode = false }) => (
   <svg
     aria-hidden="true"
@@ -134,7 +142,7 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             role="tab"
             aria-selected={active === "home"}
             aria-current={active === "home" ? "page" : undefined}
-            className={`grid place-items-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all ${
+            className={`flex flex-col items-center justify-center gap-px size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all ${
               active === "home" ? 'bg-card/20' : 'hover:bg-card/10'
             }`}
             onClick={() => handleTabClick("home")}
@@ -142,13 +150,14 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             aria-label="Home"
           >
             <HomeIcon active={active === "home"} className="size-7" />
+            <NavLabel active={active === "home"}>Home</NavLabel>
           </button>
 
           <button
             type="button"
             role="tab"
             aria-selected={active === "circles"}
-            className={`grid place-items-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
+            className={`flex flex-col items-center justify-center gap-px size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
               active === "circles" ? 'bg-card/20' : 'hover:bg-card/10'
             }`}
             onClick={() => handleTabClick("circles")}
@@ -156,6 +165,7 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             aria-label="Circles"
           >
             <CirclesIcon active={active === "circles"} className="size-7" />
+            <NavLabel active={active === "circles"}>Circles</NavLabel>
           </button>
 
           <div className="relative size-10">
@@ -198,7 +208,7 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             type="button"
             role="tab"
             aria-selected={active === "ask"}
-            className={`grid place-items-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
+            className={`flex flex-col items-center justify-center gap-px size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
               active === "ask" ? 'bg-card/20' : 'hover:bg-card/10'
             }`}
             onClick={() => handleTabClick("ask")}
@@ -210,13 +220,14 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             ) : (
               <NavImageIcon src="/nav-icons/ask-inactive.webp" className="size-7 nav-inactive-icon" />
             )}
+            <NavLabel active={active === "ask"}>Ask</NavLabel>
           </button>
 
           <button
             type="button"
             role="tab"
             aria-selected={active === "messages"}
-            className={`relative grid place-items-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
+            className={`relative flex flex-col items-center justify-center gap-px size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
               active === "messages" ? 'bg-card/20' : 'hover:bg-card/10'
             }`}
             onClick={() => handleTabClick("messages")}
@@ -228,6 +239,7 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
             ) : (
               <NavImageIcon src="/nav-icons/messages-inactive.webp" className="size-7 nav-inactive-icon" />
             )}
+            <NavLabel active={active === "messages"}>Messages</NavLabel>
             {totalUnreadMessages > 0 && (
               <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] grid place-items-center bg-destructive text-white font-medium">
                 {formatBadge(totalUnreadMessages)}
@@ -254,7 +266,7 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               role="tab"
               aria-selected={active === "home"}
               aria-current={active === "home" ? "page" : undefined}
-              className={`grid place-items-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all ${
+              className={`flex flex-col items-center justify-center gap-px size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-all ${
                 active === "home" ? 'bg-tertiary' : 'hover:bg-muted/30'
               }`}
               onClick={() => handleTabClick("home")}
@@ -263,13 +275,14 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               data-testid="nav-home"
             >
               <HomeIcon active={active === "home"} className="size-7" />
+              <NavLabel active={active === "home"}>Home</NavLabel>
             </button>
 
             <button
               type="button"
               role="tab"
               aria-selected={active === "circles"}
-              className={`grid place-items-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
+              className={`flex flex-col items-center justify-center gap-px size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
                 active === "circles" ? 'bg-tertiary' : 'hover:bg-muted/30'
               }`}
               onClick={() => handleTabClick("circles")}
@@ -278,6 +291,7 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               data-testid="nav-circles"
             >
               <CirclesIcon active={active === "circles"} className="size-7" />
+              <NavLabel active={active === "circles"}>Circles</NavLabel>
             </button>
 
               <div className="relative size-10">
@@ -322,7 +336,7 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               type="button"
               role="tab"
               aria-selected={active === "ask"}
-              className={`grid place-items-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
+              className={`flex flex-col items-center justify-center gap-px size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
                 active === "ask" ? 'bg-tertiary' : 'hover:bg-muted/30'
               }`}
               onClick={() => handleTabClick("ask")}
@@ -335,13 +349,14 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               ) : (
                 <NavImageIcon src="/nav-icons/ask-inactive.webp" className="size-7 nav-inactive-icon" />
               )}
+              <NavLabel active={active === "ask"}>Ask</NavLabel>
             </button>
 
             <button
               type="button"
               role="tab"
               aria-selected={active === "messages"}
-              className={`relative grid place-items-center size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
+              className={`relative flex flex-col items-center justify-center gap-px size-10 rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary transition-colors ${
                 active === "messages" ? 'bg-tertiary' : 'hover:bg-muted/30'
               }`}
               onClick={() => handleTabClick("messages")}
@@ -354,6 +369,7 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               ) : (
                 <NavImageIcon src="/nav-icons/messages-inactive.webp" className="size-7 nav-inactive-icon" />
               )}
+              <NavLabel active={active === "messages"}>Messages</NavLabel>
               {totalUnreadMessages > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full text-[11px] grid place-items-center bg-destructive text-white font-medium">
                   {formatBadge(totalUnreadMessages)}
