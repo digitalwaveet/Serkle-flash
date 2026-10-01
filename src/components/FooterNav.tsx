@@ -173,12 +173,12 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
               type="button"
               role="tab"
               aria-selected={active === "add"}
-              className="absolute left-1/2 top-[-3px] z-10 grid size-10 -translate-x-1/2 place-items-center rounded-full border border-white/80 bg-[#E8D4BA] shadow-[0_8px_18px_rgba(111,73,38,0.3)] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B99065] min-[360px]:top-[-7px] min-[360px]:size-11 min-[400px]:top-[-11px] min-[400px]:size-12"
+              className="serkle-create-button absolute left-1/2 top-[-3px] z-10 grid size-10 -translate-x-1/2 place-items-center rounded-full border border-white/80 shadow-[0_8px_18px_rgba(111,73,38,0.3)] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B99065] min-[360px]:top-[-7px] min-[360px]:size-11 min-[400px]:top-[-11px] min-[400px]:size-12"
               onClick={handleCreateClick}
               title={active === 'ask' ? 'Share Story' : 'Create'}
               aria-label={active === 'ask' ? 'Share Story' : 'Create'}
             >
-              <NavImageIcon src="/nav-icons/create-active.webp" className="size-7 drop-shadow-[0_2px_2px_rgba(88,49,16,0.3)] min-[360px]:size-8 min-[400px]:size-9" />
+              <NavImageIcon src="/nav-icons/create-white.svg" className="size-5 drop-shadow-[0_1px_2px_rgba(88,49,16,0.3)] min-[360px]:size-6 min-[400px]:size-7" />
             </button>
             
             {showCreatePopup && active !== 'ask' && (
@@ -299,13 +299,13 @@ const FooterNav: React.FC<FooterNavProps> = ({ active, onSelect, onOpenCreate, o
                 type="button"
                 role="tab"
                 aria-selected={active === "add"}
-                className="absolute left-1/2 top-[-7px] z-10 grid size-10 -translate-x-1/2 place-items-center rounded-full border border-white/80 bg-[#E8D4BA] shadow-[0_8px_18px_rgba(111,73,38,0.3)] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B99065] min-[360px]:top-[-11px] min-[360px]:size-11 min-[400px]:top-[-15px] min-[400px]:size-12"
+                className="serkle-create-button absolute left-1/2 top-[-7px] z-10 grid size-10 -translate-x-1/2 place-items-center rounded-full border border-white/80 shadow-[0_8px_18px_rgba(111,73,38,0.3)] transition-all focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[#B99065] min-[360px]:top-[-11px] min-[360px]:size-11 min-[400px]:top-[-15px] min-[400px]:size-12"
                 onClick={handleCreateClick}
                 title={active === 'ask' ? 'Share Story' : 'Create'}
                 aria-label={active === 'ask' ? 'Share Story' : 'Create'}
                 data-testid="nav-add"
               >
-                <NavImageIcon src="/nav-icons/create-active.webp" className="size-7 drop-shadow-[0_2px_2px_rgba(88,49,16,0.3)] min-[360px]:size-8 min-[400px]:size-9" />
+                <NavImageIcon src="/nav-icons/create-white.svg" className="size-5 drop-shadow-[0_1px_2px_rgba(88,49,16,0.3)] min-[360px]:size-6 min-[400px]:size-7" />
               </button>
               
               {showCreatePopup && active !== 'ask' && (

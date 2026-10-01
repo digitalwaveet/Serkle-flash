@@ -30,7 +30,9 @@ export default defineConfig(({ mode }) => ({
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },
       devOptions: {
-        enabled: true,
+        // Keep the PWA worker out of Vite dev sessions so it cannot serve
+        // stale cached chunks over the live module graph/HMR requests.
+        enabled: false,
         type: 'module'
       }
     })
